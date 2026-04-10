@@ -6,6 +6,8 @@ services:
       MYSQL_DATABASE: hematica_db
     ports:
       - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
 
   django:
     build: ./backend-django
@@ -18,3 +20,6 @@ services:
       DB_NAME: hematica_db
       DB_USER: root
       DB_PASSWORD: root
+
+volumes:
+  db_data:
