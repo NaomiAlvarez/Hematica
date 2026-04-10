@@ -15,6 +15,9 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    restart: on-failure
+    volumes:
+      - ./backend-django:/app
     environment:
       DB_HOST: db
       DB_NAME: hematica_db

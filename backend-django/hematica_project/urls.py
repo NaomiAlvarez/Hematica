@@ -1,22 +1,21 @@
 """
-URL configuration for hematica_project project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Archivo principal de URLs del proyecto Hemática.
+Aquí se registran todas las rutas de la API agrupadas por módulo.
+Todas las rutas tienen el prefijo /api/v1/ siguiendo el contrato de API.
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 urlpatterns = [
+    # Panel de administración de Django
     path('admin/', admin.site.urls),
+
+    # Módulo de pacientes: especies, razas, clientes, pacientes
+    path('api/v1/', include('pacientes.urls')),
+
+    # Módulo de estudios: catálogo de estudios disponibles
+    path('api/v1/', include('estudios.urls')),
+
+    # Módulo de empleados: tipos de empleado, empleados, veterinarios
+    path('api/v1/', include('empleados.urls')),
 ]
