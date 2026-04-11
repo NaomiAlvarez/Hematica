@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+# PyMySQL se instala como reemplazo de mysqlclient
+# porque mysqlclient requiere compiladores de C que
+# no están disponibles en la imagen Docker de Python slim.
 import pymysql
 pymysql.version_info = (2, 2, 1, 'final', 0)
 pymysql.install_as_MySQLdb()
@@ -23,16 +26,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# Clave secreta de Django. Nunca compartir ni subir al repo.
+# En producción debe moverse al archivo .env
 SECRET_KEY = 'django-insecure-2xe@^br9^ojgdsxe@g2d(@vsjrzz0n%dw*2aq!st4=$)%s$si8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# Modo debug activo solo en desarrollo.
+# Muestra errores detallados en el navegador.
+# Cambiar a False antes de entregar o desplegar.
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
 
 # Application definition
-
+# Aplicaciones registradas en el proyecto.
+# Las primeras 6 son de Django, las siguientes son las nuestras.
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -81,7 +90,9 @@ WSGI_APPLICATION = 'hematica_project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
+# Configuración de la base de datos MySQL.
+# HOST='db' apunta al contenedor de MySQL en Docker.
+# En desarrollo local cambiar HOST a '127.0.0.1'.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
