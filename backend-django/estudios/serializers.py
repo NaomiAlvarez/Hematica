@@ -1,7 +1,8 @@
 """
 Serializers para el módulo de estudios.
-Maneja el catálogo de estudios disponibles en el laboratorio
-y los resultados de estudios realizados a los pacientes.
+Convierte el catálogo de estudios disponibles a formato JSON
+para que el frontend pueda mostrarlos al tutor al momento
+de crear una solicitud de estudio.
 """
 from rest_framework import serializers
 from .models import CatalogoEstudio
@@ -10,8 +11,15 @@ from .models import CatalogoEstudio
 class CatalogoEstudioSerializer(serializers.ModelSerializer):
     """
     Serializer para el catálogo de estudios disponibles.
-    Cada estudio tiene un nombre y un precio.
-    Ejemplo: Hemograma completo - $250.00
+    Convierte cada estudio a JSON con su id, nombre y precio.
+    El frontend usa este serializer para mostrar la lista
+    de estudios disponibles al tutor cuando crea una solicitud.
+    Ejemplo de respuesta:
+    {
+        "id_catalogo": 1,
+        "nombre": "Hemograma completo",
+        "precio": "250.00"
+    }
     """
     class Meta:
         model = CatalogoEstudio

@@ -1,6 +1,8 @@
 """
 Serializers para el módulo de pacientes.
-Convierten los modelos de Django a JSON y viceversa para la API REST.
+Los serializers convierten los modelos de Django a formato JSON
+para enviarlos al frontend, y validan los datos JSON que llegan
+del frontend antes de guardarlos en la base de datos.
 """
 from rest_framework import serializers
 from .models import Especie, Raza, Cliente, Paciente
@@ -9,7 +11,12 @@ from .models import Especie, Raza, Cliente, Paciente
 class EspecieSerializer(serializers.ModelSerializer):
     """
     Serializer para el modelo Especie.
-    Devuelve el id y nombre de la especie (ej. Canino, Felino).
+    Convierte una especie a JSON con su id y nombre.
+    Ejemplo de respuesta:
+    {
+        "id_especie": 1,
+        "nombre": "Canino"
+    }
     """
     class Meta:
         model = Especie
@@ -19,8 +26,16 @@ class EspecieSerializer(serializers.ModelSerializer):
 class RazaSerializer(serializers.ModelSerializer):
     """
     Serializer para el modelo Raza.
-    Incluye el nombre de la especie a la que pertenece la raza
-    como campo de solo lectura.
+    Incluye el nombre de la especie como campo extra de solo lectura
+    para que el frontend no tenga que hacer una consulta adicional
+    para saber a qué especie pertenece la raza.
+    Ejemplo de respuesta:
+    {
+        "id_raza": 1,
+        "nombre": "Labrador",
+        "id_especie": 1,
+        "especie_nombre": "Canino"
+    }
     """
     especie_nombre = serializers.CharField(
         source='id_especie.nombre',
@@ -34,8 +49,14 @@ class RazaSerializer(serializers.ModelSerializer):
 
 class ClienteSerializer(serializers.ModelSerializer):
     """
-    Serializer para el modelo Cliente (tutor de la mascota).
+    Serializer para el modelo Cliente (tutor de mascotas).
     Relacionado con un Usuario del sistema.
+    Ejemplo de respuesta:
+    {
+        "id_cliente": 1,
+        "id_usuario": 3,
+        "genero": "M"
+    }
     """
     class Meta:
         model = Cliente
@@ -46,8 +67,20 @@ class PacienteSerializer(serializers.ModelSerializer):
     """
     Serializer para el modelo Paciente (mascota).
     Incluye campos adicionales de solo lectura para mostrar
-    el nombre de la especie, raza y dueño sin necesitar
-    consultas adicionales desde el frontend.
+    el nombre de la especie, raza y dueño directamente en la respuesta.
+    Esto evita que el frontend tenga que hacer múltiples consultas.
+    Ejemplo de respuesta:
+    {
+        "id_paciente": 1,
+        "nombre": "Firulais",
+        "sexo": "M",
+        "edad": 3,
+        "id_cliente": 1,
+        "id_raza": 2,
+        "especie_nombre": "Canino",
+        "raza_nombre": "Labrador",
+        "dueno": "María López"
+    }
     """
     especie_nombre = serializers.CharField(
         source='id_raza.id_especie.nombre',

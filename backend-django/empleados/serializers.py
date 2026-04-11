@@ -1,7 +1,9 @@
 """
 Serializers para el módulo de empleados.
-Maneja el personal del laboratorio: empleados generales
-y veterinarios con sus datos profesionales.
+Convierte los datos del personal del laboratorio a formato JSON.
+Incluye serializers para tipos de empleado, empleados y veterinarios.
+Los veterinarios tienen un serializer especial que incluye su nombre
+y clínica directamente para facilitar la asignación a solicitudes.
 """
 from rest_framework import serializers
 from .models import TipoEmpleado, Empleado, Veterinario
@@ -9,9 +11,14 @@ from .models import TipoEmpleado, Empleado, Veterinario
 
 class TipoEmpleadoSerializer(serializers.ModelSerializer):
     """
-    Serializer para los tipos de empleado.
-    Define los puestos disponibles en el laboratorio.
-    Ejemplo: Recepcionista, Laboratorista, Veterinario analista.
+    Serializer para los tipos de empleado (puestos).
+    Convierte cada puesto a JSON con su id, nombre y descripción.
+    Ejemplo de respuesta:
+    {
+        "id_tipo_emp": 1,
+        "puesto": "Recepcionista",
+        "descripcion": "Recibe muestras y gestiona solicitudes"
+    }
     """
     class Meta:
         model = TipoEmpleado
@@ -21,8 +28,18 @@ class TipoEmpleadoSerializer(serializers.ModelSerializer):
 class EmpleadoSerializer(serializers.ModelSerializer):
     """
     Serializer para el modelo Empleado.
-    Incluye el nombre del puesto como campo de solo lectura
-    para no tener que hacer consultas extra desde el frontend.
+    Incluye el nombre del puesto como campo extra de solo lectura
+    para que el frontend no tenga que hacer una consulta adicional.
+    Ejemplo de respuesta:
+    {
+        "id_emp": 1,
+        "id_usuario": 2,
+        "id_tipo_emp": 1,
+        "puesto": "Recepcionista",
+        "nombre_clinica": "Hemática central",
+        "telefono": "3121234567",
+        "direccion": "Rafael Heredia #696"
+    }
     """
     puesto = serializers.CharField(
         source='id_tipo_emp.puesto',
@@ -40,9 +57,19 @@ class EmpleadoSerializer(serializers.ModelSerializer):
 class VeterinarioSerializer(serializers.ModelSerializer):
     """
     Serializer para el modelo Veterinario.
-    Extiende los datos del empleado con información
-    profesional: CURP y cédula profesional.
-    Usado para asignar veterinarios a solicitudes de estudio.
+    Incluye el nombre del veterinario y su clínica como campos
+    extra de solo lectura para facilitar la asignación a solicitudes.
+    El frontend usa este serializer para mostrar la lista de
+    veterinarios disponibles al momento de procesar una muestra.
+    Ejemplo de respuesta:
+    {
+        "id_vet": 1,
+        "id_emp": 1,
+        "nombre": "Dr. Gómez",
+        "clinica": "Hemática central",
+        "curp": "GOME900101HCOLMR09",
+        "cedula": "1234567"
+    }
     """
     nombre = serializers.CharField(
         source='id_emp.id_usuario.nombre',
