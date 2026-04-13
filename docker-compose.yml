@@ -1,0 +1,37 @@
+# docker-compose.yml
+# Define los servicios que componen el sistema de Hemática.
+# Para levantar el proyecto ejecutar: docker compose up
+# Para detenerlo ejecutar: docker compose down
+
+services:
+
+  # Servicio de base de datos MySQL
+  db:
+    image: mysql:8                    # Imagen oficial de MySQL versión 8
+    environment:
+      MYSQL_ROOT_PASSWORD: root       # Contraseña del usuario root
+      MYSQL_DATABASE: hematica_db     # Base de datos que se crea automáticamente
+    ports:
+      - "3306:3306"                   # Puerto local:puerto contenedor
+    volumes:
+      - db_data:/var/lib/mysql        # Volumen persistente — los datos no se pierden al apagar
+
+  # Servicio de Django (backend)
+  django:
+    build: ./backend-django           # Construye la imagen desde el Dockerfile en backend-django/
+    ports:
+      - "8000:8000"                   # Django corre en localhost:8000
+    depends_on:
+      - db                            # Espera a que MySQL esté listo antes de arrancar
+    restart: on-failure               # Se reinicia automáticamente si falla (ej. MySQL tarda en arrancar)
+    volumes:
+      - ./backend-django:/app         # Hot reload — cambios en código se reflejan sin reconstruir
+    environment:
+      DB_HOST: db                     # Nombre del servicio MySQL dentro de Docker
+      DB_NAME: hematica_db            # Nombre de la base de datos
+      DB_USER: root                   # Usuario de MySQL
+      DB_PASSWORD: root               # Contraseña de MySQL
+
+# Volúmenes persistentes
+volumes:
+  db_data:                            # Almacena los datos de MySQL entre reinicios
