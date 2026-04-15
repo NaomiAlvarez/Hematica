@@ -27,6 +27,8 @@ urlpatterns = [
     # Panel de administración de Django
     path('admin/', admin.site.urls),
 
+    path('api/v1/auth/', include('usuarios.urls')),  # Rutas de autenticación y gestión de usuarios
+
     # Módulo de pacientes: especies, razas, clientes, pacientes
     path('api/v1/', include('pacientes.urls')),
 
