@@ -44,9 +44,9 @@ class Usuario(models.Model):
         help_text="Correo electrónico único. Se usa para iniciar sesión."
     )
     password = models.CharField(
-        max_length=60,
-        help_text="Contraseña cifrada con bcrypt. Nunca se guarda en texto plano."
-    )
+    max_length=128,
+    help_text="Contraseña cifrada con bcrypt. Nunca se guarda en texto plano."
+)
     num_tel = models.CharField(
         max_length=12,
         help_text="Número de teléfono de contacto."
