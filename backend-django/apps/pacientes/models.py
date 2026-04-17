@@ -4,7 +4,7 @@ Define las especies, razas, clientes (tutores) y pacientes (mascotas).
 Un cliente puede tener múltiples mascotas registradas en el sistema.
 """
 from django.db import models
-from usuarios.models import Usuario
+from apps.usuarios.models import Usuario
 
 
 class Especie(models.Model):

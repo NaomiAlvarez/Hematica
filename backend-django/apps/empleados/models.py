@@ -5,7 +5,7 @@ Un veterinario es un empleado con datos profesionales adicionales
 como CURP y cédula profesional.
 """
 from django.db import models
-from usuarios.models import Usuario
+from apps.usuarios.models import Usuario
 
 
 class TipoEmpleado(models.Model):

@@ -7,9 +7,9 @@ Define el flujo completo de atención de una muestra en el laboratorio:
   4. HistorialClinico -> expediente médico acumulado del paciente
 """
 from django.db import models
-from pacientes.models import Paciente
-from estudios.models import CatalogoEstudio
-from empleados.models import Veterinario
+from apps.pacientes.models import Paciente
+from apps.estudios.models import CatalogoEstudio
+from apps.empleados.models import Veterinario
 
 
 class Solicitud(models.Model):

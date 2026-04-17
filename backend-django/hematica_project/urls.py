@@ -24,17 +24,9 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    # Panel de administración de Django
     path('admin/', admin.site.urls),
-
-    path('api/v1/auth/', include('usuarios.urls')),  # Rutas de autenticación y gestión de usuarios
-
-    # Módulo de pacientes: especies, razas, clientes, pacientes
-    path('api/v1/', include('pacientes.urls')),
-
-    # Módulo de estudios: catálogo de estudios disponibles
-    path('api/v1/', include('estudios.urls')),
-
-    # Módulo de empleados: tipos de empleado, empleados, veterinarios
-    path('api/v1/', include('empleados.urls')),
+    path('api/v1/', include('apps.pacientes.urls')),
+    path('api/v1/', include('apps.estudios.urls')),
+    path('api/v1/', include('apps.empleados.urls')),
+    path('api/v1/auth/', include('apps.usuarios.urls')),
 ]
