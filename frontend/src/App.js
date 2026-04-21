@@ -1,25 +1,25 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Pacientes from './pages/Pacientes';
+import Empleados from './pages/Empleados'; 
+import Estudios from './pages/Estudios'; // <--- 1. IMPORTANTE: Importar el archivo
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes> {/* 2. Solo usamos un Routes para envolver todo */}
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/pacientes" element={<Pacientes />} />
+        <Route path="/empleados" element={<Empleados />} /> 
+        <Route path="/estudios" element={<Estudios />} /> {/* 3. Ruta corregida */}
+      </Routes>
+    </Router>
   );
 }
 
-export default App;
+export default App; // 4. Siempre al final

@@ -1,0 +1,40 @@
+.home-container {
+  height: 90vh; /* Ajustado para que quepa con el navbar */
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.circle-container {
+  width: 300px;
+  height: 300px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  backdrop-filter: blur(5px);
+  background-color: rgba(0, 0, 0, 0.2);
+  
+  /* --- AGREGA ESTO --- */
+  overflow: hidden; /* Corta las esquinas blancas que se salgan del círculo */
+}
+
+.main-logo {
+  /* --- CAMBIA ESTO --- */
+  width: 100%;       /* Ocupa todo el ancho del círculo */
+  height: 100%;      /* Ocupa todo el alto del círculo */
+  object-fit: cover; /* Ajusta la imagen para que llene el círculo sin deformarse */
+}
+
+.subtitle {
+  color: white;
+  font-weight: 200;
+  letter-spacing: 4px;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
