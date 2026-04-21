@@ -1,0 +1,71 @@
+/* Contenedor principal del Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 50px;
+  background-color: #000000; /* Negro puro boutique */
+  border-bottom: 1px solid #222;
+  height: 70px;
+}
+
+/* Contenedor del Logo y Texto "HEMÁTICA" */
+.nav-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo-img {
+  height: 45px;
+  width: 45px;
+  border-radius: 50%; /* Lo hace circular */
+  object-fit: cover;
+  margin-right: 15px;
+  background-color: white; /* Por si el logo es oscuro */
+}
+
+.nav-logo-text {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+/* Enlaces de navegación */
+.nav-links {
+  display: flex;
+  align-items: center;
+}
+
+.nav-item {
+  text-decoration: none;
+  color: #888; /* Gris para que no compita con el logo */
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin: 0 20px;
+  transition: 0.3s;
+  text-transform: uppercase;
+}
+
+.nav-item:hover {
+  color: #8429ce; /* Morado al pasar el mouse */
+}
+
+/* El botón de la derecha (ACCESO PERSONAL) */
+.btn-acceso {
+  text-decoration: none;
+  color: white;
+  border: 1px solid white;
+  padding: 8px 20px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  transition: 0.3s;
+  margin-left: 20px;
+}
+
+.btn-acceso:hover {
+  background-color: white;
+  color: black;
+}

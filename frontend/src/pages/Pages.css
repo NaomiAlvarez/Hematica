@@ -1,0 +1,79 @@
+/* Contenedor principal de cada sección */
+.page-container {
+  padding: 40px 80px;
+  min-height: 100vh;
+  background-color: #000; /* Fondo negro boutique */
+}
+
+/* Títulos grandes y elegantes */
+.title-boutique {
+  font-size: 32px;
+  letter-spacing: 5px;
+  color: white;
+  font-weight: 300;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+/* Subtítulos delgados */
+.subtitle-boutique {
+  color: #666;
+  font-size: 14px;
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+}
+
+/* Estilo de la tabla */
+.table-responsive {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.boutique-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.02); /* Fondo sutil */
+}
+
+.boutique-table th {
+  text-align: left;
+  padding: 15px;
+  color: #555;
+  font-size: 11px;
+  letter-spacing: 2px;
+  border-bottom: 1px solid #222;
+}
+
+.boutique-table td {
+  padding: 20px 15px;
+  color: #aaa;
+  font-size: 13px;
+  border-bottom: 1px solid #111;
+}
+
+/* El botón que usaremos en varias tablas */
+.btn-table-edit {
+  background: transparent;
+  border: 1px solid #8429ce;
+  color: #8429ce;
+  padding: 8px 15px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-table-edit:hover {
+  background: #8429ce;
+  color: white;
+}
+
+/* Etiquetas de estado (como 'Nivel 1' o 'Disponible') */
+.status-badge {
+  background: rgba(132, 41, 206, 0.1);
+  color: #8429ce;
+  padding: 4px 10px;
+  border-radius: 2px;
+  font-size: 10px;
+  text-transform: uppercase;
+}
