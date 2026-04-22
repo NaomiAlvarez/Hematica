@@ -20,12 +20,10 @@
   backdrop-filter: blur(5px);
   background-color: rgba(0, 0, 0, 0.2);
   
-  /* --- AGREGA ESTO --- */
   overflow: hidden; /* Corta las esquinas blancas que se salgan del círculo */
 }
 
 .main-logo {
-  /* --- CAMBIA ESTO --- */
   width: 100%;       /* Ocupa todo el ancho del círculo */
   height: 100%;      /* Ocupa todo el alto del círculo */
   object-fit: cover; /* Ajusta la imagen para que llene el círculo sin deformarse */
