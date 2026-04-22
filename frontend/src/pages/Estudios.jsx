@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import './Pages.css';
 
 const Estudios = () => {
-  // 1. ESTADOS: Para la lista del catálogo y el estado de carga
   const [estudios, setEstudios] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 2. CONEXIÓN: Traemos el catálogo de Sebastian
   useEffect(() => {
     const obtenerEstudios = async () => {
       try {
@@ -14,8 +12,6 @@ const Estudios = () => {
         const datos = await respuesta.json();
         setEstudios(datos);
       } catch (error) {
-        console.log("Catálogo real no encontrado, cargando catálogo demo...");
-        // DATOS DE PRUEBA: Usando 'id_catalogo', 'nombre' y 'precio' del Serializer
         const backup = [
           { id_catalogo: 1, nombre: "Hemograma Completo", precio: "250.00" },
           { id_catalogo: 2, nombre: "Perfil Bioquímico (6)", precio: "450.00" },
@@ -26,7 +22,6 @@ const Estudios = () => {
       }
       setLoading(false);
     };
-
     obtenerEstudios();
   }, []);
 
@@ -53,17 +48,20 @@ const Estudios = () => {
             <tbody>
               {estudios.map((est) => (
                 <tr key={est.id_catalogo}>
-                  <td style={{ color: '#8429ce', fontSize: '12px' }}>
+                  <td className="id-cell">
                     #{est.id_catalogo.toString().padStart(3, '0')}
                   </td>
-                  <td style={{ color: 'white', fontWeight: 'bold' }}>
+                  <td className="name-cell">
                     {est.nombre}
                   </td>
-                  <td style={{ letterSpacing: '1px' }}>
+                  <td className="price-cell">
                     ${est.precio} MXN
                   </td>
                   <td>
-                    <span className="status-badge">Disponible</span>
+                    {/* ESTILO TIPO BOTÓN VERDE (IMAGEN 1) */}
+                    <span className="status-badge status-disponible">
+                      DISPONIBLE
+                    </span>
                   </td>
                 </tr>
               ))}
