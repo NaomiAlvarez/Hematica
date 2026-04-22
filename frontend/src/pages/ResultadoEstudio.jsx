@@ -1,39 +1,69 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import './Pages.css'; // USAMOS TU MISMO CSS
 
 const ResultadoEstudio = () => {
-    const resultadosData = [
-        {
-            id_resultado: 501,
-            id_solicitud: 1,
-            fecha_muestra: "2024-05-21",
-            observaciones: "Muestra recolectada a tiempo",
-            reporte_clinico: "Resultados dentro de los rangos normales."
-        }
-    ];
+  const [resultados, setResultados] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    return (
-        <div className="container mt-4">
-            <h2 className="mb-4">Resultados de Estudios</h2>
-            <div className="row">
-                {resultadosData.map((res) => (
-                    <div className="col-md-6" key={res.id_resultado}>
-                        <div className="card shadow-sm mb-3">
-                            <div className="card-header bg-primary text-white">
-                                Resultado #{res.id_resultado} (Solicitud {res.id_solicitud})
-                            </div>
-                            <div className="card-body">
-                                <p><strong>Fecha:</strong> {res.fecha_muestra}</p>
-                                <p><strong>Observaciones:</strong> {res.observaciones}</p>
-                                <hr />
-                                <p><strong>Reporte Clínico:</strong></p>
-                                <div className="p-2 bg-light border">{res.reporte_clinico}</div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+  useEffect(() => {
+    const obtenerResultados = async () => {
+      try {
+        const respuesta = await fetch('http://localhost:8000/api/v1/resultados/');
+        const datos = await respuesta.json();
+        setResultados(datos);
+      } catch (error) {
+        console.log("Cargando resultados demo...");
+        setResultados([{ 
+            id_resultado: "RES-501", 
+            paciente_nombre: "Thor", 
+            fecha_muestra: "2024-05-21", 
+            reporte_clinico: "Hemograma completo - Normal" 
+        }]);
+      }
+      setLoading(false);
+    };
+    obtenerResultados();
+  }, []);
+
+  return (
+    <div className="page-container">
+      <header className="page-header">
+        <h1 className="title-boutique">RESULTADOS</h1>
+        <p className="subtitle-boutique">Informes diagnósticos y reportes clínicos</p>
+      </header>
+
+      {loading ? (
+        <p className="loading-text">Buscando reportes...</p>
+      ) : (
+        <div className="table-responsive">
+          <table className="boutique-table">
+            <thead>
+              <tr>
+                <th>REPORTE</th>
+                <th>PACIENTE</th>
+                <th>FECHA</th>
+                <th>RESUMEN</th>
+                <th>ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>
+              {resultados.map((res) => (
+                <tr key={res.id_resultado}>
+                  <td style={{ color: 'white', fontWeight: 'bold' }}>{res.id_resultado}</td>
+                  <td>{res.paciente_nombre}</td>
+                  <td>{res.fecha_muestra}</td>
+                  <td style={{ fontSize: '0.85rem', color: '#ccc' }}>{res.reporte_clinico}</td>
+                  <td>
+                    <button className="btn-table-edit">VER PDF</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
 export default ResultadoEstudio;

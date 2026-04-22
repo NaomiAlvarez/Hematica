@@ -8,24 +8,24 @@ import Empleados from './pages/Empleados';
 import Estudios from './pages/Estudios'; 
 import Solicitudes from './pages/Solicitudes'; 
 import ResultadoEstudio from './pages/ResultadoEstudio'; 
+import './pages/Pages.css'; // Asegúrate de importar el CSS aquí también
 
 function App() {
   return (
     <Router>
       <Navbar />
-      <div className="container-fluid"> {/* Contenedor para que las tablas no toquen los bordes */}
+      <div className="container-fluid">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/pacientes" element={<Pacientes />} />
           <Route path="/empleados" element={<Empleados />} /> 
           <Route path="/estudios" element={<Estudios />} />
-          
-          {/* --- NUEVAS RUTAS --- */}
           <Route path="/solicitudes" element={<Solicitudes />} />
           <Route path="/resultados" element={<ResultadoEstudio />} />
         </Routes>
       </div>
+      {/* El gato que estaba aquí ha sido eliminado */}
     </Router>
   );
 }
