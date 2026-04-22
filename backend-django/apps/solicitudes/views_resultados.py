@@ -5,11 +5,11 @@ Al crear un resultado, actualiza automaticamente la solicitud a finalizado y cre
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response 
-from .models import ResultadosEstudio, HistorialClinico
+from .models import ResultadoEstudio, HistorialClinico
 from .serializers_resultados import ResultadoEstudioSerializer,HistorialClinicoSerializer
 
 class ResultadoEstudioViewSet(viewsets.ModelViewSet):
-    queryset = ResultadosEstudio.objects.all()
+    queryset = ResultadoEstudio.objects.all()
     serializer_class = ResultadoEstudioSerializer
 
     def perform_create(self, serializer):
@@ -27,11 +27,11 @@ class ResultadoEstudioViewSet(viewsets.ModelViewSet):
             notas='Resultado registrado automaticamente'
         )
 
-class HistorialClinicoViewSet (viewsets.ModelViewset):
+class HistorialClinicoViewSet (viewsets.ModelViewSet):
     serializer_class = HistorialClinicoSerializer
 
     def get_queryset(self):
-        queryset =  HistorialClinico.objects,all()
+        queryset =  HistorialClinico.objects.all()
         id_paciente = self.request.query_params.get('id_paciente')
         if id_paciente :
             queryset = queryset.filter(id_paciente=id_paciente)
