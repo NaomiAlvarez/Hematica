@@ -27,13 +27,22 @@ const Estudios = () => {
 
   return (
     <div className="page-container">
-      <header className="page-header">
-        <h1 className="title-boutique">CATÁLOGO DE ESTUDIOS</h1>
-        <p className="subtitle-boutique">Servicios de análisis clínico especializados</p>
+      <header className="page-header-boutique">
+        <div className="header-text">
+          <h1 className="title-boutique">CATÁLOGO DE ESTUDIOS</h1>
+          <p className="subtitle-boutique">Servicios de análisis clínico especializados</p>
+        </div>
+        
+        {/* BOTÓN ADMINISTRADOR */}
+        <button className="btn-add-main">
+          <span className="plus-icon">+</span> NUEVO ESTUDIO
+        </button>
       </header>
 
       {loading ? (
-        <p className="loading-text">Cargando servicios...</p>
+        <div className="loading-state">
+          <p className="subtitle-boutique">Sincronizando catálogo...</p>
+        </div>
       ) : (
         <div className="table-responsive">
           <table className="boutique-table">
@@ -43,6 +52,7 @@ const Estudios = () => {
                 <th>NOMBRE DEL ESTUDIO</th>
                 <th>PRECIO UNITARIO</th>
                 <th>ESTADO</th>
+                <th style={{ textAlign: 'center' }}>ACCIONES</th>
               </tr>
             </thead>
             <tbody>
@@ -51,17 +61,14 @@ const Estudios = () => {
                   <td className="id-cell">
                     #{est.id_catalogo.toString().padStart(3, '0')}
                   </td>
-                  <td className="name-cell">
-                    {est.nombre}
-                  </td>
-                  <td className="price-cell">
-                    ${est.precio} MXN
-                  </td>
+                  <td className="name-cell">{est.nombre}</td>
+                  <td className="price-cell">${est.precio} MXN</td>
                   <td>
-                    {/* ESTILO TIPO BOTÓN VERDE (IMAGEN 1) */}
-                    <span className="status-badge status-disponible">
-                      DISPONIBLE
-                    </span>
+                    <span className="status-badge status-disponible">DISPONIBLE</span>
+                  </td>
+                  <td className="actions-cell">
+                    <button className="btn-action edit" title="Editar Precio o Nombre">✎</button>
+                    <button className="btn-action delete" title="Eliminar del Catálogo">🗑</button>
                   </td>
                 </tr>
               ))}

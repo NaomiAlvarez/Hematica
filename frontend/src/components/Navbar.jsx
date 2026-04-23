@@ -1,4 +1,3 @@
-// src/components/Navbar.jsx
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
@@ -24,15 +23,19 @@ const Navbar = ({ onLogout, userRole }) => {
         </div>
 
         <div className="nav-links">
-          {/* SECCIÓN PERSONAL: Solo visible para el Admin */}
-          {userRole === 'admin' && (
+          {/* SECCIÓN DINÁMICA: Si es admin ve Pacientes, si es usuario ve Mis Mascotas */}
+          {userRole === 'admin' ? (
             <>
               <Link to="/pacientes" className="nav-item">PACIENTES</Link>
               <Link to="/empleados" className="nav-item">EMPLEADOS</Link>
             </>
+          ) : (
+            <>
+              <Link to="/mascotas" className="nav-item">MIS MASCOTAS</Link>
+            </>
           )}
 
-          {/* SECCIÓN COMPARTIDA: Ambos roles ven esto */}
+          {/* SECCIÓN COMPARTIDA */}
           <Link to="/estudios" className="nav-item">ESTUDIOS</Link>
           <Link to="/solicitudes" className="nav-item">SOLICITUDES</Link>
           <Link to="/resultados" className="nav-item">RESULTADOS</Link>
