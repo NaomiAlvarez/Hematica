@@ -36,7 +36,7 @@ const Pacientes = () => {
           <p className="subtitle-boutique">Registro clínico de mascotas y ejemplares</p>
         </div>
         <button className="btn-add-main">
-          <span className="plus-icon">+</span> REGISTRAR PACIENTE
+          <span className="plus-icon">+</span> 
         </button>
       </header>
 
