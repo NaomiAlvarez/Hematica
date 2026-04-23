@@ -50,17 +50,20 @@ class RazaSerializer(serializers.ModelSerializer):
 class ClienteSerializer(serializers.ModelSerializer):
     """
     Serializer para el modelo Cliente (tutor de mascotas).
-    Relacionado con un Usuario del sistema.
-    Ejemplo de respuesta:
-    {
-        "id_cliente": 1,
-        "id_usuario": 3,
-        "genero": "M"
-    }
+    Incluye el nombre y correo del usuario para mostrar en el frontend.
     """
+    nombre = serializers.CharField(
+        source='id_usuario.nombre',
+        read_only=True
+    )
+    correo = serializers.CharField(
+        source='id_usuario.correo',
+        read_only=True
+    )
+
     class Meta:
         model = Cliente
-        fields = ['id_cliente', 'id_usuario', 'genero']
+        fields = ['id_cliente', 'id_usuario', 'genero', 'nombre', 'correo']
 
 
 class PacienteSerializer(serializers.ModelSerializer):
