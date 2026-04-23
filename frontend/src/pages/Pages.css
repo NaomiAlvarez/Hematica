@@ -1,46 +1,39 @@
-/* src/pages/Pages.css - MODO OSCURO LINDO CON COLORES MÉDICOS */
+/* src/pages/Pages.css - DISEÑO CLÍNICO MINIMALISTA (AZUL & BLANCO) */
 
+/* 1. CONFIGURACIÓN GENERAL */
 .page-container {
-    background-color: #000000; /* Regresamos al negro fondo que te gusta */
-    color: #ffffff;
+    background-color: #f1f5f9; /* Un gris azulado muy claro y limpio */
+    color: #1e293b; /* Azul medianoche para el texto */
     min-height: 100vh;
     padding: 40px 60px;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .page-header {
-    margin-bottom: 30px;
     display: flex;
-    align-items: center; /* Alinea la imagen con el texto */
-    gap: 25px;
-}
-
-/* Estilo para la imagen del perro */
-/* src/pages/Pages.css */
-
-
-
-.page-header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 30px;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 35px;
 }
 
 .title-boutique {
     font-family: 'Montserrat', sans-serif;
-    font-weight: 300; /* Un grosor más fino la hace ver más "clase alta" */
-    letter-spacing: 5px; /* Aquí está la elegancia: letras separadas */
+    font-weight: 600; /* Un poco más de peso para que resalte en blanco */
+    letter-spacing: 4px;
     text-transform: uppercase;
-    color: #ffffff;
+    color: #0f172a; /* Azul casi negro */
+    margin: 0;
 }
 
 .subtitle-boutique {
-    color: #2ecc71; /* Verde médico para el subtítulo */
-    font-size: 1rem;
+    color: #3b82f6; /* Azul brillante médico */
+    font-size: 0.95rem;
     font-weight: 500;
+    margin: 0;
 }
 
+/* 2. DISEÑO DE TABLA (ESTILO CARD FLOTANTE) */
 .table-responsive {
     width: 100%;
     margin-top: 20px;
@@ -48,170 +41,159 @@
 
 .boutique-table {
     width: 100%;
-    border-collapse: collapse;
-    background-color: transparent;
+    border-collapse: separate; 
+    border-spacing: 0 10px; 
 }
 
-.boutique-table th {
+.boutique-table thead th {
     text-align: left;
-    padding: 15px;
-    color: #3498db; /* Azul médico para los encabezados */
+    padding: 12px 20px;
+    color: #64748b; /* Gris azulado para cabeceras */
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    border-bottom: 2px solid #3498db; /* Línea azul resaltada */
+    letter-spacing: 1px;
 }
 
-.boutique-table td {
-    padding: 20px 15px;
-    color: #bbbbbb;
-    border-bottom: 1px solid #1a1a1a;
-    font-size: 1rem;
+.boutique-table tbody tr {
+    background-color: #ffffff; /* Filas blancas puras */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); /* Sombra muy suave */
+    transition: all 0.2s ease;
+    border-radius: 8px;
 }
 
 .boutique-table tbody tr:hover {
-    background-color: #0a0a0a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12); /* Brillo azul sutil */
+    background-color: #f8faff;
 }
 
-.btn-table-edit {
-    background-color: #2ecc71; /* Botón Verde Médico */
-    color: #ffffff;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.btn-table-edit:hover {
-    background-color: #27ae60;
-    box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
-}
-
-/* Gato miniatura para la tabla */
-.tab-cat-icon {
-    width: 30px !important;    /* Tamaño mini para la fila */
-    height: 30px !important;
-    border-radius: 50% !important;
-    object-fit: contain !important;
-    background-color: #000000;
-    border: 1.5px solid #2ecc71; /* El borde verde médico pero más fino */
-    margin-right: 10px;        /* Espacio entre el gato y el botón */
-    vertical-align: middle;    /* Para que se alinee bien con el texto del botón */
-}
-
-/* Contenedor de la celda para que todo esté en línea */
-.action-cell {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-/* --- ESTILO DEL GATO FIJO A LA DERECHA --- */
-
-.cat-fixed-right {
-    position: fixed;        /* Se queda quieto aunque hagas scroll */
-    right: 40px;            /* Distancia desde el borde derecho */
-    top: 50%;               /* Lo bajamos a la mitad de la pantalla */
-    transform: translateY(-50%); /* Centrado vertical exacto */
-    z-index: 2000;          /* Capa muy alta para que nada lo tape */
-    pointer-events: none;   /* Permite que si hay un botón debajo del gato, puedas hacer click */
-}
-
-.img-gato-grande {
-    width: 280px;           /* Tamaño grande e imponente */
-    height: auto;           /* Mantiene la forma original */
-    max-height: 450px;      /* Límite para que no se salga de la pantalla */
-    
-    /* LA CLAVE PARA QUE NO SE CORTE */
-    object-fit: contain !important; 
-    
-    /* ESTÉTICA MÉDICA */
-    border: 4px solid #2ecc71;      /* Círculo/Borde verde médico */
-    border-radius: 25px;            /* Bordes redondeados elegantes */
-    background-color: rgba(0, 0, 0, 0.7); /* Fondo negro traslúcido para que resalte */
-    padding: 15px;                  /* Espacio entre el gato y el borde verde */
-    box-shadow: 0 0 40px rgba(46, 204, 113, 0.4); /* Brillo verde sutil */
-}
-
-/* Para que en pantallas de laptop no tape mucho la tabla */
-@media (max-width: 1400px) {
-    .img-gato-grande {
-        width: 180px;
-        right: 20px;
-    }
-}
-
-/* Estilo para el recuadro verde de "Disponible" */
-.status-badge {
-    background-color: rgba(46, 204, 113, 0.15); /* Fondo verde traslúcido */
-    color: #2ecc71;                            /* Texto verde neón médico */
-    padding: 6px 14px;                         /* Espaciado interno */
-    border-radius: 6px;                        /* Bordes ligeramente redondeados */
-    border: 1px solid #2ecc71;                 /* Borde sólido verde */
-    font-size: 0.75rem;                        /* Tamaño de fuente equilibrado */
-    font-weight: bold;
-    text-transform: uppercase;                 /* Mayúsculas para mejor lectura */
-    letter-spacing: 0.5px;
-    display: inline-block;
-    box-shadow: 0 0 10px rgba(46, 204, 113, 0.1); /* Brillo muy sutil */
-}
-
-/* Ajuste general para la tabla (opcional pero recomendado) */
 .boutique-table td {
-    vertical-align: middle; /* Centra el badge verticalmente respecto al texto de la fila */
-    padding: 15px 10px;     /* Da aire a las celdas */
+    padding: 18px 20px;
+    color: #334155;
+    vertical-align: middle;
+    border: none;
 }
 
-/* Asegurarse de que el contenedor de la tabla no tenga paddings raros ahora sin el gato */
-.container-fluid {
-    padding-right: 15px !important;
-    padding-left: 15px !important;
-}
+/* Bordes redondeados para las filas */
+.boutique-table tbody tr td:first-child { border-radius: 8px 0 0 8px; }
+.boutique-table tbody tr td:last-child { border-radius: 0 8px 8px 0; }
 
-/* Estilo base para todos los estados en las tablas */
+/* 3. ESTILOS DE ESTADOS Y BOTONES */
+
 .status-badge {
-    padding: 5px 12px;
-    border-radius: 20px; /* Estilo de píldora/botón como las otras páginas */
-    font-size: 0.75rem;
-    font-weight: bold;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
     text-transform: uppercase;
     display: inline-block;
     text-align: center;
     min-width: 100px;
+    letter-spacing: 0.5px;
 }
 
-/* El recuadro verde para "Disponible" o "Finalizado" */
-.status-finalizado {
-    background-color: rgba(46, 204, 113, 0.15); /* Fondo verde traslúcido */
-    color: #2ecc71;                            /* Texto verde médico */
-    border: 1px solid #2ecc71;                 /* Borde fino */
+/* Azul sólido para acciones o finalizados */
+.status-finalizado, .status-disponible, .btn-add-boutique {
+    background-color: #2563eb; /* Azul Rey */
+    color: #ffffff;
 }
 
-/* Por si acaso necesitas el azul para estados pendientes en el futuro */
+/* Azul claro para pendientes */
 .status-pendiente {
-    background-color: rgba(52, 152, 219, 0.15);
-    color: #3498db;
-    border: 1px solid #3498db;
+    background-color: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
 }
 
-/* Diseño de la tabla para que sea igual en todas las páginas */
-.boutique-table {
+/* 4. CELDAS ESPECIALES */
+.id-cell {
+    color: #3b82f6 !important; /* Azul para el ID */
+    font-weight: 700;
+}
+
+.name-cell {
+    color: #0f172a !important;
+    font-weight: 600;
+}
+
+/* 5. DISEÑO DEL LOGIN (MODO CLARO) */
+.login-container {
+    height: 100vh;
+    display: flex;
+    background-color: #f8fafc;
+}
+
+/* Preparando para la pantalla dividida que sugerí */
+.login-card {
+    background-color: #ffffff;
+    padding: 45px;
+    border-radius: 16px;
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 8px; /* Espaciado entre filas */
+    max-width: 420px;
+    margin: auto;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
 }
 
-.boutique-table tr {
-    background-color: #1a1a1a; /* Fondo oscuro de la fila */
+/* UTILS */
+.container-fluid {
+    background-color: #f1f5f9;
 }
 
-.boutique-table td {
-    padding: 15px;
-    color: #bdc3c7;
-    vertical-align: middle;
+/* 6. NAVEGACIÓN DE SUBMENÚ (BOTONES DE PERSONAL) */
+.personal-tabs-container {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 25px;
+    padding: 5px;
+    background-color: #e2e8f0; /* Fondo gris suave para agrupar */
+    border-radius: 12px;
+    width: fit-content;
+}
+
+.btn-tab-boutique {
+    background: transparent;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Cuando la pestaña está seleccionada */
+.btn-tab-boutique.active {
+    background-color: #ffffff;
+    color: #2563eb;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.btn-tab-boutique:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.5);
+    color: #1e293b;
+}
+
+/* BOTÓN DE ACCIÓN EN TABLA (GESTIONAR / EDITAR) */
+.btn-table-action {
+    background-color: #1e293b; /* Azul Marino Profundo */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    text-transform: uppercase;
+}
+
+.btn-table-action:hover {
+    background-color: #3b82f6;
+    transform: scale(1.05);
 }

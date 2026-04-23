@@ -1,38 +1,74 @@
 .home-container {
-  height: 90vh; /* Ajustado para que quepa con el navbar */
+  position: relative;
+  height: 90vh; 
+  width: 100%;
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-.circle-container {
-  width: 300px;
-  height: 300px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
+.home-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 31, 63, 0.6); 
+  z-index: 1;
+}
+
+.center-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 90%;
+  max-width: 450px;
+}
+
+.logo-square {
+  width: 250px;
+  height: 250px;
+  background-color: #ffffff;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
-  backdrop-filter: blur(5px);
-  background-color: rgba(0, 0, 0, 0.2);
-  
-  overflow: hidden; /* Corta las esquinas blancas que se salgan del círculo */
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  margin-bottom: 25px;
 }
 
 .main-logo {
-  width: 100%;       /* Ocupa todo el ancho del círculo */
-  height: 100%;      /* Ocupa todo el alto del círculo */
-  object-fit: cover; /* Ajusta la imagen para que llene el círculo sin deformarse */
+  width: 98%;
+  height: 98%;
+  object-fit: contain;
+}
+
+.text-content {
+  text-align: center;
+}
+
+.main-title {
+  color: #ffffff;
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: 6px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .subtitle {
-  color: white;
-  font-weight: 200;
-  letter-spacing: 4px;
-  font-size: 1rem;
+  color: #d3dbea;
+  font-weight: 600;
+  letter-spacing: 3px;
+  font-size: 0.9rem;
   text-transform: uppercase;
+  margin-top: 8px;
 }
