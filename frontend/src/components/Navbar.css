@@ -1,15 +1,18 @@
-/* Contenedor principal del Navbar */
+/* --- CONFIGURACIÓN GENERAL DEL NAVBAR (MODO CLARO) --- */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 50px;
-  background-color: #000000; 
-  border-bottom: 1px solid #222;
-  height: 70px;
+  padding: 0 50px; /* Reduje un poco el padding vertical */
+  background-color: #ffffff; /* Fondo blanco limpio */
+  border-bottom: 1px solid #e2e8f0; /* Borde gris azulado muy suave */
+  height: 80px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03); /* Sombra casi invisible */
 }
 
-/* Contenedor del Logo y Texto "HEMÁTICA" */
 .nav-logo {
   display: flex;
   align-items: center;
@@ -17,23 +20,23 @@
 }
 
 .logo-img {
-  height: 45px;
-  width: 45px;
-  border-radius: 50%; /* Lo hace circular */
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
   object-fit: cover;
   margin-right: 15px;
-  background-color: white; /* Por si el logo es oscuro */
+  border: 2px solid #3b82f6; /* Borde azul para resaltar el logo */
 }
 
 .nav-logo-text {
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 5px;
+  color: #1e293b; /* Azul muy oscuro */
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 4px;
   text-transform: uppercase;
 }
 
-/* Enlaces de navegación */
+/* --- ENLACES DE NAVEGACIÓN --- */
 .nav-links {
   display: flex;
   align-items: center;
@@ -41,31 +44,86 @@
 
 .nav-item {
   text-decoration: none;
-  color: #888; /* Gris para que no compita con el logo */
+  color: #64748b; /* Gris azulado para items inactivos */
   font-size: 11px;
-  letter-spacing: 2px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
   margin: 0 20px;
-  transition: 0.3s;
+  transition: all 0.3s ease;
   text-transform: uppercase;
+  position: relative;
 }
 
 .nav-item:hover {
-  color: #8429ce; /* Morado al pasar el mouse */
+  color: #2563eb; /* Azul brillante al pasar el mouse */
 }
 
-/* El botón de la derecha (ACCESO PERSONAL) */
-.btn-acceso {
-  text-decoration: none;
+/* Línea decorativa abajo al pasar el mouse */
+.nav-item:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -5px;
+  left: 0;
+  background-color: #2563eb;
+  transition: width 0.3s;
+}
+
+.nav-item:hover:after {
+  width: 100%;
+}
+
+/* --- BOTÓN SALIR (MINIMALISTA ABAJO IZQUIERDA) --- */
+.btn-logout-bottom-left {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  background-color: #ffffff;
+  color: #64748b; /* Gris neutro */
+  border: 1px solid #e2e8f0;
+  padding: 12px 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 2000;
+  border-radius: 50px; /* Estilo píldora */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+}
+
+.btn-logout-bottom-left:hover {
+  background-color: #fef2f2; /* Fondo rojizo muy leve */
+  color: #ef4444; /* Rojo suave solo al hover */
+  border-color: #fecaca;
+  transform: translateX(5px);
+}
+
+/* --- BOTÓN AGREGAR (PARA TABLAS - PERSONAL) --- */
+.btn-add-boutique {
+  background-color: #2563eb; /* Azul Rey */
   color: white;
-  border: 1px solid white;
-  padding: 8px 20px;
+  border: none;
+  padding: 12px 24px;
   font-size: 11px;
+  font-weight: bold;
   letter-spacing: 1px;
-  transition: 0.3s;
-  margin-left: 20px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
-.btn-acceso:hover {
-  background-color: white;
-  color: black;
+.btn-add-boutique:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
 }
