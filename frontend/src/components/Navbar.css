@@ -3,14 +3,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 50px; /* Reduje un poco el padding vertical */
-  background-color: #ffffff; /* Fondo blanco limpio */
-  border-bottom: 1px solid #e2e8f0; /* Borde gris azulado muy suave */
+  padding: 0 50px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   height: 80px;
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03); /* Sombra casi invisible */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
 .nav-logo {
@@ -25,11 +25,11 @@
   border-radius: 50%;
   object-fit: cover;
   margin-right: 15px;
-  border: 2px solid #3b82f6; /* Borde azul para resaltar el logo */
+  border: 2px solid #3b82f6;
 }
 
 .nav-logo-text {
-  color: #1e293b; /* Azul muy oscuro */
+  color: #1e293b;
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 4px;
@@ -44,7 +44,7 @@
 
 .nav-item {
   text-decoration: none;
-  color: #64748b; /* Gris azulado para items inactivos */
+  color: #64748b;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.5px;
@@ -54,11 +54,15 @@
   position: relative;
 }
 
-.nav-item:hover {
-  color: #2563eb; /* Azul brillante al pasar el mouse */
+/* Color especial para resaltar "MIS MASCOTAS" o "PACIENTES" */
+.nav-item:first-child {
+  color: #1e293b; /* Un poco más oscuro para dar prioridad */
 }
 
-/* Línea decorativa abajo al pasar el mouse */
+.nav-item:hover {
+  color: #2563eb;
+}
+
 .nav-item:after {
   content: '';
   position: absolute;
@@ -74,13 +78,13 @@
   width: 100%;
 }
 
-/* --- BOTÓN SALIR (MINIMALISTA ABAJO IZQUIERDA) --- */
+/* --- BOTÓN SALIR (ESTILO PÍLDORA) --- */
 .btn-logout-bottom-left {
   position: fixed;
   bottom: 30px;
   left: 30px;
   background-color: #ffffff;
-  color: #64748b; /* Gris neutro */
+  color: #64748b;
   border: 1px solid #e2e8f0;
   padding: 12px 20px;
   font-size: 10px;
@@ -90,22 +94,22 @@
   cursor: pointer;
   transition: all 0.3s ease;
   z-index: 2000;
-  border-radius: 50px; /* Estilo píldora */
+  border-radius: 50px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
   display: flex;
   align-items: center;
 }
 
 .btn-logout-bottom-left:hover {
-  background-color: #fef2f2; /* Fondo rojizo muy leve */
-  color: #ef4444; /* Rojo suave solo al hover */
+  background-color: #fef2f2;
+  color: #ef4444;
   border-color: #fecaca;
   transform: translateX(5px);
 }
 
-/* --- BOTÓN AGREGAR (PARA TABLAS - PERSONAL) --- */
+/* --- BOTÓN AGREGAR (EL QUE USAREMOS EN MIS MASCOTAS / PACIENTES) --- */
 .btn-add-boutique {
-  background-color: #2563eb; /* Azul Rey */
+  background-color: #2563eb;
   color: white;
   border: none;
   padding: 12px 24px;

@@ -2,56 +2,48 @@ import React, { useState, useEffect } from 'react';
 import './Pages.css';
 
 const Pacientes = () => {
-  // 1. ESTADOS: Para guardar la lista de mascotas y saber si estamos cargando
   const [pacientes, setPacientes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 2. CARGA DE DATOS: Usamos fetch para evitar el error de 'crypto'
   useEffect(() => {
     const obtenerPacientes = async () => {
       try {
-        // Intentamos conectar con la base de datos de Sebastian
         const respuesta = await fetch('http://localhost:8000/api/v1/pacientes/');
-        const datos = await respuesta.json();
-        setPacientes(datos);
+        if (respuesta.ok) {
+          const datos = await respuesta.json();
+          setPacientes(datos);
+        } else {
+          throw new Error("Error en la respuesta");
+        }
       } catch (error) {
-        console.log("Servidor de pacientes no detectado, usando demo...");
-        // DATOS DE PRUEBA: Con los nombres exactos que pide el Serializer
+        console.log("Servidor no detectado, cargando datos de respaldo...");
         const backup = [
-          { 
-            id_paciente: 1, 
-            nombre: "Firulais (Prueba)", 
-            especie_nombre: "Canino", 
-            raza_nombre: "Labrador", 
-            dueno: "María López", 
-            edad: 3 
-          },
-          { 
-            id_paciente: 2, 
-            nombre: "Michi (Prueba)", 
-            especie_nombre: "Felino", 
-            raza_nombre: "Siamés", 
-            dueno: "Juan Pérez", 
-            edad: 2 
-          }
+          { id_paciente: 1, nombre: "Firulais (Demo)", sexo: "M", especie_nombre: "Canino", raza_nombre: "Labrador", dueno: "María López", edad: 3 },
+          { id_paciente: 2, nombre: "Michi (Demo)", sexo: "F", especie_nombre: "Felino", raza_nombre: "Siamés", dueno: "Juan Pérez", edad: 2 }
         ];
         setPacientes(backup);
       }
       setLoading(false);
     };
-
     obtenerPacientes();
   }, []);
 
   return (
     <div className="page-container">
-      <header className="page-header">
-        <h1 className="title-boutique">PACIENTES</h1>
-        <p className="subtitle-boutique">Registro clínico de mascotas y ejemplares</p>
+      <header className="page-header-boutique">
+        <div className="header-text">
+          <h1 className="title-boutique">PACIENTES</h1>
+          <p className="subtitle-boutique">Registro clínico de mascotas y ejemplares</p>
+        </div>
+        <button className="btn-add-main">
+          <span className="plus-icon">+</span> REGISTRAR PACIENTE
+        </button>
       </header>
 
       {loading ? (
-        <p className="loading-text">Buscando expedientes...</p>
+        <div className="loading-state">
+          <p className="subtitle-boutique">Sincronizando expedientes...</p>
+        </div>
       ) : (
         <div className="table-responsive">
           <table className="boutique-table">
@@ -61,19 +53,22 @@ const Pacientes = () => {
                 <th>ESPECIE / RAZA</th>
                 <th>DUEÑO</th>
                 <th>EDAD</th>
-                <th>ACCIONES</th>
+                <th style={{ textAlign: 'center' }}>ACCIONES</th>
               </tr>
             </thead>
             <tbody>
-              {/* Recorremos la lista de pacientes y creamos cada fila */}
               {pacientes.map((paci) => (
                 <tr key={paci.id_paciente}>
-                  <td style={{ color: 'white', fontWeight: 'bold' }}>{paci.nombre}</td>
+                  <td className="name-cell">
+                    <span className="patient-name">{paci.nombre}</span>
+                    <span className="gender-tag">{paci.sexo === 'M' ? '♂' : '♀'}</span>
+                  </td>
                   <td>{paci.especie_nombre} - {paci.raza_nombre}</td>
-                  <td>{paci.dueno}</td>
+                  <td className="owner-cell">{paci.dueno}</td>
                   <td>{paci.edad} años</td>
-                  <td>
-                    <button className="btn-table-edit">EXPEDIENTE</button>
+                  <td className="actions-cell">
+                    <button className="btn-action edit" title="Ver Expediente">✎</button>
+                    <button className="btn-action delete" title="Eliminar Registro">🗑</button>
                   </td>
                 </tr>
               ))}
