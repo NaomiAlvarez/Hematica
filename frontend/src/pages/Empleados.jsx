@@ -37,7 +37,7 @@ const Empleados = () => {
         
         {/* BOTÓN PARA AGREGAR NUEVA FILA */}
         <button className="btn-add-main">
-          <span className="plus-icon">+</span> NUEVO REGISTRO
+          <span className="plus-icon">+</span> 
         </button>
       </header>
 

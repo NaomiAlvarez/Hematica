@@ -36,7 +36,7 @@ const MisMascotas = () => {
         
         {/* Usamos tu clase de botón azul rey del CSS */}
         <button className="btn-add-boutique">
-          <span>+</span> REGISTRAR MASCOTA
+          <span>+</span> 
         </button>
       </header>
 

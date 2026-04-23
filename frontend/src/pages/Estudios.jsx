@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Pages.css';
 
-const Estudios = () => {
+const Estudios = ({ userRole }) => { // Recibimos userRole como prop
   const [estudios, setEstudios] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,10 +33,12 @@ const Estudios = () => {
           <p className="subtitle-boutique">Servicios de análisis clínico especializados</p>
         </div>
         
-        {/* BOTÓN ADMINISTRADOR */}
-        <button className="btn-add-main">
-          <span className="plus-icon">+</span> NUEVO ESTUDIO
-        </button>
+        {/* LÓGICA DE PERMISOS: Solo el Admin ve el botón de agregar */}
+        {userRole === 'admin' && (
+          <button className={`btn-add-boutique is-admin`}>
+            <span>+</span> 
+          </button>
+        )}
       </header>
 
       {loading ? (
@@ -52,7 +54,8 @@ const Estudios = () => {
                 <th>NOMBRE DEL ESTUDIO</th>
                 <th>PRECIO UNITARIO</th>
                 <th>ESTADO</th>
-                <th style={{ textAlign: 'center' }}>ACCIONES</th>
+                {/* La columna de acciones solo existe para el admin */}
+                {userRole === 'admin' && <th style={{ textAlign: 'center' }}>ACCIONES</th>}
               </tr>
             </thead>
             <tbody>
@@ -62,14 +65,18 @@ const Estudios = () => {
                     #{est.id_catalogo.toString().padStart(3, '0')}
                   </td>
                   <td className="name-cell">{est.nombre}</td>
-                  <td className="price-cell">${est.precio} MXN</td>
+                  <td className="price-cell">${est.price || est.precio} MXN</td>
                   <td>
                     <span className="status-badge status-disponible">DISPONIBLE</span>
                   </td>
-                  <td className="actions-cell">
-                    <button className="btn-action edit" title="Editar Precio o Nombre">✎</button>
-                    <button className="btn-action delete" title="Eliminar del Catálogo">🗑</button>
-                  </td>
+                  
+                  {/* LÓGICA DE PERMISOS EN LA TABLA: Solo admin edita o borra */}
+                  {userRole === 'admin' && (
+                    <td className="actions-cell">
+                      <button className="btn-action edit" title="Editar">✎</button>
+                      <button className="btn-action delete" title="Eliminar">🗑</button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
