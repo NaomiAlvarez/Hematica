@@ -109,7 +109,7 @@
 
 /* --- BOTÓN AGREGAR (EL QUE USAREMOS EN MIS MASCOTAS / PACIENTES) --- */
 .btn-add-boutique {
-  background-color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.3);
   color: white;
   border: none;
   padding: 12px 24px;
