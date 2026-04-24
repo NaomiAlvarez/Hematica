@@ -120,7 +120,7 @@ const Solicitudes = ({ usuario, isAdmin }) => {
         </div>
         {isAdmin && (
           <button className="btn-add-boutique" onClick={() => { setMostrarForm(!mostrarForm); setErrForm(''); }}>
-            <span>+</span> NUEVA SOLICITUD
+            <span>+</span> 
           </button>
         )}
       </header>

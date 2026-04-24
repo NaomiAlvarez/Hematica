@@ -101,7 +101,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
           <p className="subtitle-boutique">{isAdmin ? 'Gestion de todos los pacientes' : 'Gestion de tus ejemplares'}</p>
         </div>
         <button className="btn-add-boutique" onClick={() => { setMostrarForm(!mostrarForm); setErrForm(''); }}>
-          <span>+</span> REGISTRAR MASCOTA
+          <span>+</span> 
         </button>
       </header>
 

@@ -138,7 +138,7 @@ const ResultadoEstudio = ({ usuario, isAdmin }) => {
         </div>
         {isAdmin && (
           <button className="btn-add-boutique" onClick={() => { setMostrarForm(!mostrarForm); setErrForm(''); }}>
-            <span>+</span> REGISTRAR RESULTADO
+            <span>+</span> 
           </button>
         )}
       </header>
