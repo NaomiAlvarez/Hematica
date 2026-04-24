@@ -28,7 +28,7 @@ const Usuarios = () => {
     <div className="page-container">
       <header className="page-header">
         <h1 className="title-boutique">GESTIÓN DE USUARIOS</h1>
-        <button className="btn-table-edit" style={{marginBottom: '20px'}}>+ NUEVO USUARIO</button>
+        <button className="btn-table-edit" style={{marginBottom: '20px'}}>+</button>
       </header>
 
       {loading ? (
