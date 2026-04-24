@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { use, useState } from 'react';
 import './Login.css';
 
 const Login = ({ onLogin }) => {
+const [errors,setErrors]=useState({});
+const [loading, setLoading]=useState(false);
+const [success, setSuccess] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [formData, setFormData] = useState({
     correo: '',
@@ -9,65 +12,58 @@ const Login = ({ onLogin }) => {
     nombre: '',
     num_tel: '',
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  if (success) {
+    return (
+      <div className="success-container">
+        <h2>🐾 Solicitud enviada 🐾</h2>
+        <p>El laboratorio se pondrá en contacto contigo</p>
+        <div className="huellas">
+          🐾 🐾 🐾 🐾 🐾
+        </div>
+      </div>
+    );
+  }
+
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+   const {name, value} = e.target;
+   const limpio = value.replace (/<[^>]*>?/gm, '');
+   setFormData({...formData,[name]: limpio});
+   setErrors({...errors,[name]: ''});
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      if (isRegistering) {
-        const res = await fetch('http://localhost:8000/api/v1/auth/register/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nombre: formData.nombre,
-            correo: formData.correo,
-            password: formData.password,
-            num_tel: formData.num_tel,
-            id_tipo_usuario: 1
-          })
-        });
-        const data = await res.json();
-        if (res.ok) {
-          alert('Cuenta creada exitosamente. Ahora inicia sesion.');
-          setIsRegistering(false);
-        } else {
-          setError(data.correo?.[0] || data.error || 'Error al registrar');
-        }
-      } else {
-        const res = await fetch('http://localhost:8000/api/v1/auth/login/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            correo: formData.correo,
-            password: formData.password
-          })
-        });
-        const data = await res.json();
-        if (res.ok) {
-          localStorage.setItem('token', data.access);
-          localStorage.setItem('usuario', JSON.stringify(data.usuario));
-          const tipoId = data.usuario.id_tipo_usuario;
-          const role = (tipoId === 4 || tipoId === 8 || tipoId === 11) ? 'admin' 
-           : (tipoId === 2 || tipoId === 6 || tipoId === 10) ? 'veterinario' 
-           : 'usuario';
-          onLogin(role, data.usuario);
-        } else {
-          setError(data.error || 'Credenciales incorrectas');
-        }
-      }
-    } catch {
-      setError('No se pudo conectar con el servidor');
+  const validar =() => {
+    let nuevosErrores={};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      nuevosErrores.email = "Correo electrónico no válido";
     }
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      nuevosErrores.phone = "Número de teléfono debe tener 10 dígitos";
+    }
+    if (formData.password.length <8 ) {
+      nuevosErrores.password = "La contraseña debe tener al menos 8 caracteres";
+    }
+    if (isRegistering && formData.petName.length<2) {
+      nuevosErrores.petName = "El nombre de la mascota debe tener al menos 2 caracteres";
+    }
+    setErrors(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  }
+
+ const handleSubmit = (e) => {
+  e.preventDefault();
+
+  if (!validar()) return;
+
+  setLoading(true);
+
+  setTimeout(() => {
     setLoading(false);
-  };
+    setSuccess(true);
+  }, 2000);
+};
 
   return (
     <div className="login-screen" style={{ backgroundImage: "url('/huellas.jpg')" }}>
@@ -83,22 +79,57 @@ const Login = ({ onLogin }) => {
         <p>{isRegistering ? 'Crea tu cuenta' : 'Laboratorio Clinico Hematica'}</p>
 
         <form onSubmit={handleSubmit} className="login-form-container">
+          <div className="input-group">
+            <label>CORREO ELECTRÓNICO</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className={errors.email ? 'input-error' : ''}
+            />
+            {errors.email && <span className="error-message">{errors.email}</span>}
+          </div>
+
+          <div className="input-group">
+            <label>TELÉFONO</label>
+            <input
+              type="tel"
+              name="phone"
+              placeholder="Tu número de contacto"
+              value={formData.phone}
+              onChange={handleChange}
+              className={errors.phone ? 'input-error' : ''}
+            />
+            {errors.phone && <span className="error-message">{errors.phone}</span>} 
+          </div>
+
           {isRegistering && (
-            <>
-              <div className="input-group">
-                <label>NOMBRE COMPLETO</label>
-                <input type="text" name="nombre" placeholder="Tu nombre" value={formData.nombre} onChange={handleChange} required />
-              </div>
-              <div className="input-group">
-                <label>TELEFONO</label>
-                <input type="tel" name="num_tel" placeholder="3121234567" value={formData.num_tel} onChange={handleChange} required />
-              </div>
-            </>
+            <div className="input-group">
+              <label>NOMBRE DE LA MASCOTA</label>
+              <input
+                type="text"
+                name="petName"
+                placeholder="Nombre de tu paciente"
+                value={formData.petName}
+                onChange={handleChange}
+                className={errors.petName ? 'input-error' : ''}
+              />
+              {errors.petName && <span className="error-message">{errors.petName}</span>} 
+            </div>
           )}
 
           <div className="input-group">
-            <label>CORREO ELECTRONICO</label>
-            <input type="email" name="correo" placeholder="ejemplo@correo.com" value={formData.correo} onChange={handleChange} required />
+            <label>CONTRASEÑA</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              className={errors.password ? 'input-error' : ''}
+            />
+            {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
 
           <div className="input-group">
@@ -106,10 +137,8 @@ const Login = ({ onLogin }) => {
             <input type="password" name="password" placeholder="••••••••" value={formData.password} onChange={handleChange} required />
           </div>
 
-          {error && <p style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center' }}>{error}</p>}
-
-          <button type="submit" className="btn-login" disabled={loading}>
-            {loading ? 'Cargando...' : isRegistering ? 'CREAR CUENTA' : 'ACCEDER'}
+          <button type="submit" className="btn-login">
+            {loading ? 'CARGANDO...' : isRegistering ? 'SOLICITAR ALTA' : 'INICIAR ACCEDER'}
           </button>
 
           <div className="login-footer-links">
@@ -118,6 +147,27 @@ const Login = ({ onLogin }) => {
               {isRegistering ? 'REGRESAR AL LOGIN' : 'CREAR CUENTA'}
             </button>
           </div>
+          {loading && (
+  <div className="success-overlay">
+    <div className="success-box">
+      <h2>Cargando...</h2>
+      <div className="paw-container">
+  <img src="/gatito.png" className="paw-img" alt="huella" />
+  <img src="/gatito.png" className="paw-img" alt="huella" />
+  <img src="/gatito.png" className="paw-img" alt="huella" />
+  <img src="/gatito.png" className="paw-img" alt="huella" />
+    </div>
+      </div>
+    </div>
+)}
+{success && (
+  <div className="success-overlay">
+    <div className="success-box">
+      <h2>Solicitud enviada 🐾</h2>
+      <p>Nos pondremos en contacto contigo</p>
+    </div>
+  </div>
+)}      
         </form>
       </div>
     </div>
