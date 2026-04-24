@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { use, useState } from 'react';
 import './Login.css';
 
 const Login = ({ onLogin }) => {
+const [errors,setErrors]=useState({});
+const [loading, setLoading]=useState(false);
+const [success, setSuccess] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -10,20 +13,58 @@ const Login = ({ onLogin }) => {
     role: 'usuario',
     petName: '' 
   });
+  if (success) {
+    return (
+      <div className="success-container">
+        <h2>🐾 Solicitud enviada 🐾</h2>
+        <p>El laboratorio se pondrá en contacto contigo</p>
+        <div className="huellas">
+          🐾 🐾 🐾 🐾 🐾
+        </div>
+      </div>
+    );
+  }
+
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+   const {name, value} = e.target;
+   const limpio = value.replace (/<[^>]*>?/gm, '');
+   setFormData({...formData,[name]: limpio});
+   setErrors({...errors,[name]: ''});
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (isRegistering) {
-      alert("Solicitud enviada. El laboratorio se pondrá en contacto para activar su cuenta.");
-      setIsRegistering(false);
-    } else {
-      onLogin(formData.role);
+  const validar =() => {
+    let nuevosErrores={};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      nuevosErrores.email = "Correo electrónico no válido";
     }
-  };
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      nuevosErrores.phone = "Número de teléfono debe tener 10 dígitos";
+    }
+    if (formData.password.length <8 ) {
+      nuevosErrores.password = "La contraseña debe tener al menos 8 caracteres";
+    }
+    if (isRegistering && formData.petName.length<2) {
+      nuevosErrores.petName = "El nombre de la mascota debe tener al menos 2 caracteres";
+    }
+    setErrors(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  }
+
+ const handleSubmit = (e) => {
+  e.preventDefault();
+
+  if (!validar()) return;
+
+  setLoading(true);
+
+  setTimeout(() => {
+    setLoading(false);
+    setSuccess(true);
+  }, 2000);
+};
 
   return (
     /* SOLUCIÓN AL ERROR: Aplicamos el fondo aquí directamente. 
@@ -51,11 +92,11 @@ const Login = ({ onLogin }) => {
             <input
               type="email"
               name="email"
-              placeholder="ejemplo@correo.com"
               value={formData.email}
               onChange={handleChange}
-              required
+              className={errors.email ? 'input-error' : ''}
             />
+            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
           <div className="input-group">
@@ -66,8 +107,9 @@ const Login = ({ onLogin }) => {
               placeholder="Tu número de contacto"
               value={formData.phone}
               onChange={handleChange}
-              required
+              className={errors.phone ? 'input-error' : ''}
             />
+            {errors.phone && <span className="error-message">{errors.phone}</span>} 
           </div>
 
           {isRegistering && (
@@ -79,8 +121,9 @@ const Login = ({ onLogin }) => {
                 placeholder="Nombre de tu paciente"
                 value={formData.petName}
                 onChange={handleChange}
-                required
+                className={errors.petName ? 'input-error' : ''}
               />
+              {errors.petName && <span className="error-message">{errors.petName}</span>} 
             </div>
           )}
 
@@ -92,8 +135,9 @@ const Login = ({ onLogin }) => {
               placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
-              required
+              className={errors.password ? 'input-error' : ''}
             />
+            {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
 
           {!isRegistering && (
@@ -112,7 +156,7 @@ const Login = ({ onLogin }) => {
           )}
 
           <button type="submit" className="btn-login">
-            {isRegistering ? 'SOLICITAR ALTA' : 'ACCEDER'}
+            {loading ? 'CARGANDO...' : isRegistering ? 'SOLICITAR ALTA' : 'INICIAR ACCEDER'}
           </button>
 
           <div className="login-footer-links">
@@ -125,6 +169,27 @@ const Login = ({ onLogin }) => {
               {isRegistering ? 'REGRESAR AL LOGIN' : 'CREAR CUENTA'}
             </button>
           </div>
+          {loading && (
+  <div className="success-overlay">
+    <div className="success-box">
+      <h2>Cargando...</h2>
+      <div className="paw-container">
+  <img src="/gatito.png" className="paw-img" alt="huella" />
+  <img src="/gatito.png" className="paw-img" alt="huella" />
+  <img src="/gatito.png" className="paw-img" alt="huella" />
+  <img src="/gatito.png" className="paw-img" alt="huella" />
+    </div>
+      </div>
+    </div>
+)}
+{success && (
+  <div className="success-overlay">
+    <div className="success-box">
+      <h2>Solicitud enviada 🐾</h2>
+      <p>Nos pondremos en contacto contigo</p>
+    </div>
+  </div>
+)}      
         </form>
       </div>
     </div>
