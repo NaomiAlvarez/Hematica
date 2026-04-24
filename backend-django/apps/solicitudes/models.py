@@ -1,10 +1,10 @@
 """
-Modelos para el módulo de solicitudes.
-Define el flujo completo de atención de una muestra en el laboratorio:
+Modelos para el modulo de solicitudes.
+Define el flujo completo de atencion de una muestra en el laboratorio:
   1. Solicitud     -> el tutor solicita un estudio desde casa
-  2. SolicitudEstudio -> estudios específicos incluidos en la solicitud
+  2. SolicitudEstudio -> estudios especificos incluidos en la solicitud
   3. ResultadoEstudio -> el veterinario registra los resultados
-  4. HistorialClinico -> expediente médico acumulado del paciente
+  4. HistorialClinico -> expediente medico acumulado del paciente
 """
 from django.db import models
 from apps.pacientes.models import Paciente
@@ -13,13 +13,6 @@ from apps.empleados.models import Veterinario
 
 
 class Solicitud(models.Model):
-    """
-    Representa una solicitud de estudio hecha por un tutor.
-    Tiene un flujo de estados definido:
-      pendiente -> muestra_recibida -> en_proceso -> finalizado
-    También puede cancelarse en cualquier momento antes de finalizarse.
-    Cada solicitud genera un folio único para rastrearla.
-    """
     ESTADOS = [
         ('pendiente', 'Pendiente'),
         ('muestra_recibida', 'Muestra recibida'),
@@ -37,18 +30,18 @@ class Solicitud(models.Model):
     )
     fecha_solicitud = models.DateTimeField(
         auto_now_add=True,
-        help_text="Fecha y hora en que el tutor creó la solicitud. Se genera automáticamente."
+        help_text="Fecha y hora en que el tutor creo la solicitud."
     )
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
         default='pendiente',
-        help_text="Estado actual de la solicitud en el flujo de atención."
+        help_text="Estado actual de la solicitud en el flujo de atencion."
     )
     notas_cliente = models.TextField(
         blank=True,
         null=True,
-        help_text="Observaciones del tutor sobre la mascota. Ejemplo: No ha comido desde ayer."
+        help_text="Observaciones del tutor sobre la mascota."
     )
 
     class Meta:
@@ -59,11 +52,6 @@ class Solicitud(models.Model):
 
 
 class SolicitudEstudio(models.Model):
-    """
-    Tabla intermedia que relaciona una Solicitud con los estudios solicitados.
-    Una solicitud puede incluir múltiples estudios al mismo tiempo.
-    Ejemplo: Hemograma + Urianálisis en la misma solicitud.
-    """
     id_solicitud = models.ForeignKey(
         Solicitud,
         on_delete=models.PROTECT,
@@ -74,7 +62,7 @@ class SolicitudEstudio(models.Model):
         CatalogoEstudio,
         on_delete=models.PROTECT,
         db_column='id_catalogo',
-        help_text="Tipo de estudio solicitado del catálogo."
+        help_text="Tipo de estudio solicitado del catalogo."
     )
 
     class Meta:
@@ -85,13 +73,6 @@ class SolicitudEstudio(models.Model):
 
 
 class ResultadoEstudio(models.Model):
-    """
-    Registra los resultados de una solicitud procesada por el veterinario.
-    Solo existe cuando la solicitud está en estado 'finalizado'.
-    Al crear un resultado, el sistema envía automáticamente
-    un correo al tutor con los resultados (lo implementa Naomi).
-    Cada solicitud tiene exactamente un resultado (OneToOne).
-    """
     id_resultado = models.AutoField(primary_key=True)
     id_solicitud = models.OneToOneField(
         Solicitud,
@@ -103,19 +84,25 @@ class ResultadoEstudio(models.Model):
         Veterinario,
         on_delete=models.PROTECT,
         db_column='id_vet',
-        help_text="Veterinario que procesó la muestra y registró los resultados."
+        help_text="Veterinario que proceso la muestra."
     )
     fecha_muestra = models.DateTimeField(
-        help_text="Fecha y hora en que se tomó la muestra."
+        help_text="Fecha y hora en que se tomo la muestra."
     )
     observaciones = models.CharField(
         max_length=150,
         blank=True,
         null=True,
-        help_text="Observaciones generales del veterinario sobre la muestra."
+        help_text="Observaciones generales del veterinario."
     )
     reporte_clinico = models.TextField(
-        help_text="Reporte clínico completo con todos los valores obtenidos del análisis."
+        help_text="Reporte clinico completo con todos los valores obtenidos."
+    )
+    archivo_pdf = models.FileField(
+        upload_to='resultados/',
+        blank=True,
+        null=True,
+        help_text="Archivo PDF con los resultados del estudio."
     )
 
     class Meta:
@@ -126,12 +113,6 @@ class ResultadoEstudio(models.Model):
 
 
 class HistorialClinico(models.Model):
-    """
-    Expediente médico acumulado de un paciente a lo largo del tiempo.
-    Se crea o actualiza cada vez que se finaliza un estudio.
-    Permite al veterinario ver el historial completo de una mascota
-    y hacer seguimiento de su salud a lo largo del tiempo.
-    """
     id_exp = models.AutoField(primary_key=True)
     id_paciente = models.ForeignKey(
         Paciente,
@@ -141,11 +122,11 @@ class HistorialClinico(models.Model):
     )
     fecha_registro = models.DateField(
         auto_now_add=True,
-        help_text="Fecha en que se registró este expediente. Se genera automáticamente."
+        help_text="Fecha en que se registro este expediente."
     )
     diagnostico = models.CharField(
         max_length=400,
-        help_text="Diagnóstico del veterinario basado en los resultados."
+        help_text="Diagnostico del veterinario basado en los resultados."
     )
     tratamiento = models.CharField(
         max_length=100,
@@ -157,7 +138,7 @@ class HistorialClinico(models.Model):
         max_length=100,
         blank=True,
         null=True,
-        help_text="Notas adicionales del veterinario. Ejemplo: Revisión en 30 días."
+        help_text="Notas adicionales del veterinario."
     )
 
     class Meta:
