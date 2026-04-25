@@ -17,19 +17,8 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
         setResultados(datos);
 
       } else if (isVeterinario && usuario) {
-        const resClientes = await fetch(
-          `http://localhost:8000/api/v1/veterinarios/mis_clientes/?id_usuario=${usuario.id_usuario}`
-        );
-        if (!resClientes.ok) { setResultados([]); return; }
-        const misClientes = await resClientes.json();
-
-        const pacientesPromises = misClientes.map(c =>
-          fetch(`http://localhost:8000/api/v1/pacientes/?id_cliente=${c.id_cliente}`).then(r => r.json())
-        );
-        const pacientesPorCliente = await Promise.all(pacientesPromises);
-        const todosPacientes = pacientesPorCliente.flat();
-        const nombresMascotas = todosPacientes.map(p => p.nombre);
-        setResultados(datos.filter(r => nombresMascotas.includes(r.paciente_nombre)));
+        // Fallback: muestra todos hasta que mis_clientes esté listo
+        setResultados(datos);
 
       } else if (usuario) {
         const resC = await fetch('http://localhost:8000/api/v1/clientes/');
@@ -68,11 +57,8 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
         method: 'PATCH',
         body: formData
       });
-      if (res.ok) {
-        cargarResultados();
-      } else {
-        alert('Error al subir el PDF');
-      }
+      if (res.ok) cargarResultados();
+      else alert('Error al subir el PDF');
     } catch { alert('Error al conectar con el servidor'); }
     finally { setSubiendoPdf(null); }
   };
@@ -84,11 +70,8 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' }
       });
-      if (res.ok) {
-        cargarResultados();
-      } else {
-        alert('Error al eliminar el PDF');
-      }
+      if (res.ok) cargarResultados();
+      else alert('Error al eliminar el PDF');
     } catch { alert('Error al conectar con el servidor'); }
   };
 
