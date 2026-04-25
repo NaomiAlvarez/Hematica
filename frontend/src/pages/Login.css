@@ -1,5 +1,3 @@
-/* src/pages/Login.css */
-
 .login-screen {
   position: relative;
   height: 100vh;
@@ -7,8 +5,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  /* IMPORTANTE: La línea de background-image se borró de aquí 
-     porque ahora está en el Style del Login.jsx */
   background-size: cover;
   background-position: center;
   margin: 0;
@@ -21,14 +17,14 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.75); 
+  background: rgba(255, 255, 255, 0.75);
   z-index: 1;
 }
 
 .login-card {
   position: relative;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.98); 
+  background: rgba(255, 255, 255, 0.98);
   padding: 60px 40px 40px;
   border-radius: 20px;
   width: 100%;
@@ -44,13 +40,13 @@
   background-color: white;
   border-radius: 50%;
   position: absolute;
-  top: -45px; 
+  top: -45px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 4px solid #3b82f6; 
+  border: 4px solid #3b82f6;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
@@ -90,7 +86,8 @@
   font-weight: bold;
 }
 
-.input-group input, .login-select {
+.input-group input,
+.login-select {
   width: 100%;
   padding: 12px;
   border: 1px solid #e2e8f0;
@@ -101,7 +98,8 @@
   font-size: 14px;
 }
 
-.input-group input:focus, .login-select:focus {
+.input-group input:focus,
+.login-select:focus {
   outline: none;
   border-color: #3b82f6;
   background: white;
@@ -111,7 +109,7 @@
 .btn-login {
   width: 100%;
   padding: 14px;
-  background-color: #2563eb; 
+  background-color: #2563eb;
   color: white;
   border: none;
   border-radius: 8px;
@@ -129,41 +127,56 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
+/* Botón deshabilitado mientras carga */
+.btn-login:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .login-select {
   cursor: pointer;
 }
 
 .btn-register-link {
-    background: none;
-    border: none;
-    color: #3b82f6;
-    font-weight: bold;
-    cursor: pointer;
-    text-decoration: underline;
-    font-size: 12px;
-    padding: 5px;
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 12px;
+  padding: 5px;
 }
 
 .login-footer-links p {
-    margin-bottom: 0;
-    margin-top: 20px;
+  margin-bottom: 0;
+  margin-top: 20px;
 }
+
+/* Campo con error — borde rojo */
 .input-error {
-  border: 2px solid red;
+  border: 2px solid #ef4444 !important;
+  background: #fef2f2 !important;
 }
 
+/* Mensaje de error debajo del campo */
 .error-message {
-  color: red;
+  color: #ef4444;
   font-size: 12px;
+  margin-top: 4px;
+  display: block;
 }
 
- .success-overlay {
+/* Overlay de carga con gatitos */
+.success-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -180,10 +193,12 @@
 .paw-container {
   display: flex;
   gap: 10px;
+  justify-content: center;
+  margin-top: 15px;
 }
 
 .paw-img {
-  width: 100px;
+  width: 60px;
   animation: walk 1s infinite linear;
 }
 
@@ -192,7 +207,43 @@
 .paw-img:nth-child(4) { animation-delay: 0.6s; }
 
 @keyframes walk {
-  0% { transform: translateX(0); opacity: 0; }
-  50% { opacity: 1; }
+  0%   { transform: translateX(0);    opacity: 0; }
+  50%  {                               opacity: 1; }
   100% { transform: translateX(20px); opacity: 0; }
+}
+
+/* Mensaje de éxito dentro de la card de registro */
+.success-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-radius: 12px;
+  border: 1px solid #93c5fd;
+  margin-top: 10px;
+  animation: fadeIn 0.4s ease;
+}
+
+.success-inline-icon {
+  font-size: 2.5rem;
+}
+
+.success-inline h3 {
+  color: #1e3a5f;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.success-inline p {
+  color: #475569;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Animación de entrada del mensaje de éxito */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

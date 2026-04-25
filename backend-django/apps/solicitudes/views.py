@@ -31,6 +31,12 @@ class SolicitudViewSet(viewsets.ModelViewSet):
         if nuevo_estado not in estados_validos:
             return Response({'error': 'Estado invalido'}, status=400)
         solicitud.estado = nuevo_estado
+
+        # ← NUEVO: guardar motivo si viene en el request
+        motivo = request.data.get('motivo_cancelacion')
+        if motivo:
+            solicitud.motivo_cancelacion = motivo
+
         solicitud.save()
         return Response(SolicitudSerializer(solicitud).data)
 

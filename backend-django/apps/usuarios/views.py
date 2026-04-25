@@ -5,6 +5,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth.hashers import check_password
 from .models import Usuario
 from .serializers import RegisterSerializer, UsuarioSerializer
+from apps.pacientes.models import Cliente
 
 
 class RegisterView(APIView):
@@ -12,6 +13,15 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+
+            # Si el usuario es de tipo Cliente (id_tipo_usuario = 1),
+            # crear automáticamente su registro en la tabla Cliente
+            if user.id_tipo_usuario_id == 1:
+                Cliente.objects.create(
+                    id_usuario=user,
+                    genero='M'  # Valor por defecto, puede editarse después
+                )
+
             return Response(UsuarioSerializer(user).data, status=201)
         return Response(serializer.errors, status=400)
 

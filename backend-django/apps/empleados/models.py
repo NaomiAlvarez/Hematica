@@ -9,20 +9,9 @@ from apps.usuarios.models import Usuario
 
 
 class TipoEmpleado(models.Model):
-    """
-    Define los puestos disponibles en el laboratorio.
-    Ejemplos: Recepcionista, Laboratorista, Veterinario analista.
-    Cada empleado tiene exactamente un tipo asignado.
-    """
     id_tipo_emp = models.AutoField(primary_key=True)
-    puesto = models.CharField(
-        max_length=50,
-        help_text="Nombre del puesto. Ejemplo: Recepcionista, Laboratorista."
-    )
-    descripcion = models.CharField(
-        max_length=100,
-        help_text="Descripción de las responsabilidades del puesto."
-    )
+    puesto = models.CharField(max_length=50)
+    descripcion = models.CharField(max_length=100)
 
     class Meta:
         db_table = 'tipo_empleado'
@@ -32,38 +21,16 @@ class TipoEmpleado(models.Model):
 
 
 class Empleado(models.Model):
-    """
-    Representa al personal del laboratorio.
-    Está ligado a un Usuario del sistema.
-    Contiene información laboral como clínica, teléfono y dirección.
-    Si el empleado es veterinario, tendrá un registro adicional
-    en el modelo Veterinario con sus datos profesionales.
-    """
     id_emp = models.AutoField(primary_key=True)
     id_usuario = models.OneToOneField(
-        Usuario,
-        on_delete=models.PROTECT,
-        db_column='id_usuario',
-        help_text="Usuario del sistema asociado a este empleado."
+        Usuario, on_delete=models.PROTECT, db_column='id_usuario'
     )
     id_tipo_emp = models.ForeignKey(
-        TipoEmpleado,
-        on_delete=models.PROTECT,
-        db_column='id_tipo_emp',
-        help_text="Puesto del empleado en el laboratorio."
+        TipoEmpleado, on_delete=models.PROTECT, db_column='id_tipo_emp'
     )
-    nombre_clinica = models.CharField(
-        max_length=100,
-        help_text="Nombre de la clínica o laboratorio donde trabaja."
-    )
-    telefono = models.CharField(
-        max_length=12,
-        help_text="Teléfono de contacto del empleado."
-    )
-    direccion = models.CharField(
-        max_length=60,
-        help_text="Dirección del empleado o de la clínica."
-    )
+    nombre_clinica = models.CharField(max_length=100)
+    telefono = models.CharField(max_length=12)
+    direccion = models.CharField(max_length=60)
 
     class Meta:
         db_table = 'empleado'
@@ -73,26 +40,21 @@ class Empleado(models.Model):
 
 
 class Veterinario(models.Model):
-    """
-    Extiende los datos de un Empleado con información profesional.
-    Solo los empleados que son veterinarios tienen este registro.
-    Los veterinarios se asignan a las solicitudes de estudio
-    para procesar muestras y registrar resultados clínicos.
-    """
     id_vet = models.AutoField(primary_key=True)
     id_emp = models.OneToOneField(
-        Empleado,
-        on_delete=models.PROTECT,
-        db_column='id_emp',
-        help_text="Empleado asociado a este veterinario."
+        Empleado, on_delete=models.PROTECT, db_column='id_emp'
     )
-    curp = models.CharField(
-        max_length=18,
-        help_text="CURP del veterinario. 18 caracteres."
-    )
-    cedula = models.CharField(
-        max_length=10,
-        help_text="Cédula profesional del veterinario."
+    curp = models.CharField(max_length=18)
+    cedula = models.CharField(max_length=10)
+
+    # Relación ManyToMany con Cliente — un vet puede tener varios clientes
+    # y un cliente puede tener varios vets
+    clientes = models.ManyToManyField(
+        'pacientes.Cliente',
+        through='VeterinarioCliente',
+        blank=True,
+        related_name='veterinarios',
+        help_text='Clientes asignados a este veterinario'
     )
 
     class Meta:
@@ -100,3 +62,22 @@ class Veterinario(models.Model):
 
     def __str__(self):
         return f"Dr. {self.id_emp.id_usuario.nombre}"
+
+
+class VeterinarioCliente(models.Model):
+    """
+    Tabla intermedia que vincula veterinarios con sus clientes asignados.
+    """
+    id_vet = models.ForeignKey(
+        Veterinario, on_delete=models.CASCADE, db_column='id_vet'
+    )
+    id_cliente = models.ForeignKey(
+        'pacientes.Cliente', on_delete=models.CASCADE, db_column='id_cliente'
+    )
+
+    class Meta:
+        db_table = 'veterinario_cliente'
+        unique_together = ('id_vet', 'id_cliente')
+
+    def __str__(self):
+        return f"{self.id_vet} → {self.id_cliente}"

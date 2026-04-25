@@ -10,6 +10,7 @@ import Estudios from './pages/Estudios';
 import Solicitudes from './pages/Solicitudes';
 import ResultadoEstudio from './pages/ResultadoEstudio';
 import MisMascotas from './pages/MisMascotas';
+import MisPacientes from './pages/MisPacientes';
 
 import './pages/Pages.css';
 
@@ -33,11 +34,12 @@ function App() {
   };
 
   const isAdmin = userRole === 'admin';
-  const isUsuario = userRole === 'usuario' || userRole === 'veterinario';
+  const isVeterinario = userRole === 'veterinario';
+  const isUsuario = userRole === 'usuario';
 
   return (
     <Router>
-      {isLogged && <Navbar userRole={userRole} onLogout={handleLogout} />}
+      {isLogged && <Navbar userRole={userRole} onLogout={handleLogout} usuario={usuario} />}
       <div className="container-fluid">
         <Routes>
           <Route path="/login" element={!isLogged ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
@@ -47,11 +49,41 @@ function App() {
           <Route path="/pacientes" element={isLogged && isAdmin ? <Pacientes /> : <Navigate to="/" />} />
           <Route path="/empleados" element={isLogged && isAdmin ? <Empleados /> : <Navigate to="/" />} />
 
-          {/* Admin ve todos, usuario ve los suyos */}
-          <Route path="/mascotas" element={isLogged ? <MisMascotas usuario={usuario} isAdmin={isAdmin} /> : <Navigate to="/login" />} />
-          <Route path="/estudios" element={isLogged ? <Estudios userRole={userRole} /> : <Navigate to="/login" />} />
-          <Route path="/solicitudes" element={isLogged ? <Solicitudes usuario={usuario} isAdmin={isAdmin} /> : <Navigate to="/login" />} />
-          <Route path="/resultados" element={isLogged ? <ResultadoEstudio usuario={usuario} isAdmin={isAdmin} /> : <Navigate to="/login" />} />
+          {/* Admin ve todos los pacientes, usuario ve los suyos, veterinario no tiene acceso */}
+          <Route path="/mascotas" element={
+            isLogged && (isAdmin || isUsuario)
+              ? <MisMascotas usuario={usuario} isAdmin={isAdmin} />
+              : <Navigate to="/" />
+          } />
+
+          {/* Estudios: admin edita, veterinario y usuario solo ven */}
+          <Route path="/estudios" element={
+            isLogged
+              ? <Estudios userRole={userRole} />
+              : <Navigate to="/login" />
+          } />
+
+          {/* Solicitudes: admin ve todas, veterinario puede crear, usuario ve las suyas */}
+          <Route path="/solicitudes" element={
+            isLogged
+              ? <Solicitudes usuario={usuario} isAdmin={isAdmin} isVeterinario={isVeterinario} />
+              : <Navigate to="/login" />
+          } />
+
+          {/* Resultados: admin gestiona, veterinario y usuario solo ven */}
+          <Route path="/resultados" element={
+            isLogged
+              ? <ResultadoEstudio usuario={usuario} isAdmin={isAdmin} isVeterinario={isVeterinario} />
+              : <Navigate to="/login" />
+          } />
+
+          {/* Mis Clientes: solo veterinario y usuario pueden ver */}
+          <Route path="/mis-pacientes" element={
+            isLogged && (isVeterinario || isUsuario)
+              ? <MisPacientes usuario={usuario} />
+              : <Navigate to="/" />
+              
+          } />
 
           <Route path="*" element={<Navigate to={isLogged ? "/" : "/login"} />} />
         </Routes>

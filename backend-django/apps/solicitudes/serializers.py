@@ -13,12 +13,16 @@ class SolicitudSerializer(serializers.ModelSerializer):
     dueno = serializers.CharField(
         source='id_paciente.id_cliente.id_usuario.nombre', read_only=True
     )
+    motivo_cancelacion = serializers.CharField(
+        allow_null=True, required=False
+    )
 
     class Meta:
         model = Solicitud
         fields = [
             'id_solicitud', 'id_paciente', 'paciente_nombre',
-            'dueno', 'fecha_solicitud', 'estado', 'notas_cliente'
+            'dueno', 'fecha_solicitud', 'estado', 'notas_cliente',
+            'motivo_cancelacion'
         ]
 
 
