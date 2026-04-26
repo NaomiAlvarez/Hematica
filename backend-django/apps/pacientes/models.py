@@ -8,16 +8,8 @@ from apps.usuarios.models import Usuario
 
 
 class Especie(models.Model):
-    """
-    Representa el tipo de animal.
-    Ejemplos: Canino, Felino, Ave, Reptil.
-    Una especie puede tener múltiples razas asociadas.
-    """
     id_especie = models.AutoField(primary_key=True)
-    nombre = models.CharField(
-        max_length=25,
-        help_text="Nombre de la especie. Ejemplo: Canino, Felino."
-    )
+    nombre = models.CharField(max_length=25)
 
     class Meta:
         db_table = 'especie'
@@ -27,22 +19,9 @@ class Especie(models.Model):
 
 
 class Raza(models.Model):
-    """
-    Representa la raza de un animal dentro de una especie.
-    Ejemplo: Labrador y Golden Retriever son razas de Canino.
-    Cada raza pertenece a exactamente una especie.
-    """
     id_raza = models.AutoField(primary_key=True)
-    id_especie = models.ForeignKey(
-        Especie,
-        on_delete=models.PROTECT,
-        db_column='id_especie',
-        help_text="Especie a la que pertenece esta raza."
-    )
-    nombre = models.CharField(
-        max_length=30,
-        help_text="Nombre de la raza. Ejemplo: Labrador, Siamés."
-    )
+    id_especie = models.ForeignKey(Especie, on_delete=models.PROTECT, db_column='id_especie')
+    nombre = models.CharField(max_length=30)
 
     class Meta:
         db_table = 'raza'
@@ -52,22 +31,9 @@ class Raza(models.Model):
 
 
 class Cliente(models.Model):
-    """
-    Representa al tutor o dueño de una mascota.
-    Está ligado a un Usuario del sistema con rol de Cliente.
-    Un cliente puede tener múltiples mascotas registradas.
-    """
     id_cliente = models.AutoField(primary_key=True)
-    id_usuario = models.OneToOneField(
-        Usuario,
-        on_delete=models.PROTECT,
-        db_column='id_usuario',
-        help_text="Usuario del sistema asociado a este cliente."
-    )
-    genero = models.CharField(
-        max_length=1,
-        help_text="Género del cliente. M = Masculino, F = Femenino."
-    )
+    id_usuario = models.OneToOneField(Usuario, on_delete=models.PROTECT, db_column='id_usuario')
+    genero = models.CharField(max_length=1)
 
     class Meta:
         db_table = 'cliente'
@@ -77,34 +43,25 @@ class Cliente(models.Model):
 
 
 class Paciente(models.Model):
-    """
-    Representa a la mascota que recibe los servicios del laboratorio.
-    Cada paciente pertenece a un cliente (tutor) y tiene una raza asignada.
-    A través de la raza se puede obtener la especie del paciente.
-    """
     id_paciente = models.AutoField(primary_key=True)
-    id_cliente = models.ForeignKey(
-        Cliente,
-        on_delete=models.PROTECT,
-        db_column='id_cliente',
-        help_text="Tutor o dueño de esta mascota."
+    id_cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, db_column='id_cliente')
+    id_raza = models.ForeignKey(Raza, on_delete=models.PROTECT, db_column='id_raza')
+    nombre = models.CharField(max_length=20)
+    sexo = models.CharField(max_length=1)
+    edad = models.IntegerField()
+    peso = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        blank=True, null=True,
+        help_text="Peso de la mascota en kg."
     )
-    id_raza = models.ForeignKey(
-        Raza,
-        on_delete=models.PROTECT,
-        db_column='id_raza',
-        help_text="Raza de la mascota. A través de la raza se obtiene la especie."
+    anamnesis = models.TextField(       
+        blank=True, null=True,
+        help_text="Historia clínica y síntomas previos del paciente."
     )
-    nombre = models.CharField(
-        max_length=20,
-        help_text="Nombre de la mascota. Ejemplo: Firulais, Luna."
-    )
-    sexo = models.CharField(
-        max_length=1,
-        help_text="Sexo de la mascota. M = Macho, H = Hembra."
-    )
-    edad = models.IntegerField(
-        help_text="Edad de la mascota en años."
+    cartilla_pdf = models.FileField(
+        upload_to='cartillas/',
+        blank=True, null=True,
+        help_text="Cartilla de vacunación en PDF."
     )
 
     class Meta:

@@ -29,6 +29,13 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   const [errModificar, setErrModificar] = useState({});
   const [guardandoModificar, setGuardandoModificar] = useState(false);
 
+  // ─── Editar / Eliminar solicitud (veterinario) ────────────────────────────
+  const [modalEditarSol, setModalEditarSol] = useState(null);
+  const [formEditarSol, setFormEditarSol] = useState({ id_paciente: '', notas_cliente: '', estudiosSeleccionados: [] });
+  const [guardandoEditarSol, setGuardandoEditarSol] = useState(false);
+  const [errEditarSol, setErrEditarSol] = useState({});
+  const [modalEliminarSol, setModalEliminarSol] = useState(null);
+
   const sanitizar = (valor) => valor.replace(/<[^>]*>?/gm, '');
 
   const cargarSolicitudes = useCallback(async () => {
@@ -91,7 +98,6 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   const recargarEstudios = () =>
     fetch('http://localhost:8000/api/v1/solicitud-estudios/').then(r => r.json()).then(setSolicitudEstudios);
 
-  // ─── Form nueva solicitud ─────────────────────────────────────────────────
   const toggleEstudio = (id) => {
     setForm(prev => ({
       ...prev,
@@ -102,10 +108,19 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     setErrForm(prev => ({ ...prev, estudiosSeleccionados: '' }));
   };
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: sanitizar(value) }));
     setErrForm(prev => ({ ...prev, [name]: '' }));
+    if (name === 'id_paciente' && value) {
+      try {
+        const res = await fetch(`http://localhost:8000/api/v1/pacientes/${value}/`);
+        if (res.ok) {
+          const paciente = await res.json();
+          setForm(prev => ({ ...prev, id_paciente: value, notas_cliente: paciente.anamnesis || '' }));
+        }
+      } catch { }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -117,8 +132,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     setErrForm({});
     try {
       const resSol = await fetch('http://localhost:8000/api/v1/solicitudes/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_paciente: parseInt(form.id_paciente), estado: 'pendiente', notas_cliente: form.notas_cliente.trim() })
       });
       if (!resSol.ok) { setErrForm({ general: 'Error al crear solicitud' }); return; }
@@ -136,7 +150,6 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     } catch { setErrForm({ general: 'Error al conectar con el servidor' }); }
   };
 
-  // ─── Acciones admin ───────────────────────────────────────────────────────
   const accionAdmin = async (sol, nuevoEstado) => {
     setErrEstado('');
     setProcesando(sol.id_solicitud);
@@ -151,7 +164,6 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     finally { setProcesando(null); }
   };
 
-  // ─── Rechazar con motivo ──────────────────────────────────────────────────
   const rechazarSolicitud = async () => {
     if (!motivoCancelacion.trim()) { setErrMotivo('Debes escribir el motivo.'); return; }
     setProcesando(modalRechazar.id_solicitud);
@@ -166,7 +178,6 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     finally { setProcesando(null); }
   };
 
-  // ─── Finalizar ────────────────────────────────────────────────────────────
   const handleGuardarResultado = async () => {
     let errores = {};
     if (!formResultado.id_vet) errores.id_vet = 'Selecciona un veterinario';
@@ -179,10 +190,8 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
       const r1 = await fetch('http://localhost:8000/api/v1/resultados/', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id_solicitud: modalFinalizar.id_solicitud,
-          id_vet: parseInt(formResultado.id_vet),
-          fecha_muestra: formResultado.fecha_muestra,
-          observaciones: formResultado.observaciones.trim(),
+          id_solicitud: modalFinalizar.id_solicitud, id_vet: parseInt(formResultado.id_vet),
+          fecha_muestra: formResultado.fecha_muestra, observaciones: formResultado.observaciones.trim(),
           reporte_clinico: formResultado.reporte_clinico.trim()
         })
       });
@@ -199,11 +208,8 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     finally { setGuardandoResultado(false); }
   };
 
-  // ─── Modificar solicitud cancelada ────────────────────────────────────────
   const abrirModalModificar = (sol) => {
-    const estudiosActuales = solicitudEstudios
-      .filter(se => se.id_solicitud === sol.id_solicitud)
-      .map(se => se.id_catalogo);
+    const estudiosActuales = solicitudEstudios.filter(se => se.id_solicitud === sol.id_solicitud).map(se => se.id_catalogo);
     setFormModificar({ id_paciente: sol.id_paciente, notas_cliente: sol.notas_cliente || '', estudiosSeleccionados: estudiosActuales });
     setErrModificar({});
     setModalModificar(sol);
@@ -225,18 +231,11 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     try {
       const r1 = await fetch(`http://localhost:8000/api/v1/solicitudes/${modalModificar.id_solicitud}/`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id_paciente: parseInt(formModificar.id_paciente),
-          estado: 'pendiente',
-          notas_cliente: formModificar.notas_cliente.trim(),
-          motivo_cancelacion: null
-        })
+        body: JSON.stringify({ id_paciente: parseInt(formModificar.id_paciente), estado: 'pendiente', notas_cliente: formModificar.notas_cliente.trim(), motivo_cancelacion: null })
       });
       if (!r1.ok) { setErrModificar({ general: 'Error al actualizar.' }); return; }
       const anteriores = solicitudEstudios.filter(se => se.id_solicitud === modalModificar.id_solicitud);
-      await Promise.all(anteriores.map(se =>
-        fetch(`http://localhost:8000/api/v1/solicitud-estudios/${se.id}/`, { method: 'DELETE' })
-      ));
+      await Promise.all(anteriores.map(se => fetch(`http://localhost:8000/api/v1/solicitud-estudios/${se.id}/`, { method: 'DELETE' })));
       await Promise.all(formModificar.estudiosSeleccionados.map(id =>
         fetch('http://localhost:8000/api/v1/solicitud-estudios/', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -248,6 +247,55 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
       recargarEstudios();
     } catch { setErrModificar({ general: 'Error al conectar.' }); }
     finally { setGuardandoModificar(false); }
+  };
+
+  // ─── Editar solicitud (veterinario) ──────────────────────────────────────
+  const abrirEditarSol = (sol) => {
+    const estudiosActuales = solicitudEstudios.filter(se => se.id_solicitud === sol.id_solicitud).map(se => se.id_catalogo);
+    setFormEditarSol({ id_paciente: sol.id_paciente, notas_cliente: sol.notas_cliente || '', estudiosSeleccionados: estudiosActuales });
+    setErrEditarSol({});
+    setModalEditarSol(sol);
+  };
+
+  const guardarEdicionSol = async () => {
+    if (!formEditarSol.id_paciente) { setErrEditarSol({ id_paciente: 'Selecciona un paciente' }); return; }
+    if (formEditarSol.estudiosSeleccionados.length === 0) { setErrEditarSol({ estudiosSeleccionados: 'Selecciona al menos un estudio' }); return; }
+    setGuardandoEditarSol(true);
+    try {
+      const r1 = await fetch(`http://localhost:8000/api/v1/solicitudes/${modalEditarSol.id_solicitud}/`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_paciente: parseInt(formEditarSol.id_paciente), notas_cliente: formEditarSol.notas_cliente.trim() })
+      });
+      if (!r1.ok) { setErrEditarSol({ general: 'Error al actualizar.' }); return; }
+      const anteriores = solicitudEstudios.filter(se => se.id_solicitud === modalEditarSol.id_solicitud);
+      await Promise.all(anteriores.map(se => fetch(`http://localhost:8000/api/v1/solicitud-estudios/${se.id}/`, { method: 'DELETE' })));
+      await Promise.all(formEditarSol.estudiosSeleccionados.map(id =>
+        fetch('http://localhost:8000/api/v1/solicitud-estudios/', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_solicitud: modalEditarSol.id_solicitud, id_catalogo: id })
+        })
+      ));
+      setModalEditarSol(null);
+      cargarSolicitudes();
+      recargarEstudios();
+    } catch { setErrEditarSol({ general: 'Error al conectar.' }); }
+    finally { setGuardandoEditarSol(false); }
+  };
+
+  // ─── Eliminar solicitud (veterinario) ─────────────────────────────────────
+  const eliminarSolicitud = async () => {
+    try {
+      const anteriores = solicitudEstudios.filter(se => se.id_solicitud === modalEliminarSol.id_solicitud);
+      await Promise.all(anteriores.map(se => fetch(`http://localhost:8000/api/v1/solicitud-estudios/${se.id}/`, { method: 'DELETE' })));
+      const res = await fetch(`http://localhost:8000/api/v1/solicitudes/${modalEliminarSol.id_solicitud}/`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      setModalEliminarSol(null);
+      cargarSolicitudes();
+      recargarEstudios();
+    } catch {
+      setModalEliminarSol(null);
+      setErrEstado('No se pudo eliminar la solicitud.');
+    }
   };
 
   const badgeEstado = (estado) => (
@@ -319,10 +367,14 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
               )}
             </div>
             <div className="input-group">
-              <label>NOTAS <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(opcional, máx. 200)</span></label>
-              <input type="text" name="notas_cliente" value={form.notas_cliente} onChange={handleChange}
-                placeholder="Observaciones" maxLength={200} />
-              <span style={{ fontSize: '11px', color: '#94a3b8' }}>{form.notas_cliente.length}/200</span>
+              <label>ANAMNESIS <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(prellenado con anamnesis del paciente — máx. 200)</span></label>
+              <textarea name="notas_cliente" value={form.notas_cliente} onChange={handleChange}
+                placeholder="Selecciona un paciente para cargar su anamnesis..." maxLength={200} rows={3}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', resize: 'vertical', boxSizing: 'border-box' }} />
+              <span style={{ fontSize: '11px', color: form.notas_cliente.length > 180 ? '#ef4444' : '#94a3b8' }}>
+                {form.notas_cliente.length}/200
+  
+              </span>
             </div>
             {errForm.general && <p style={{ color: '#ef4444', fontSize: '0.85rem' }}>{errForm.general}</p>}
             <div style={{ display: 'flex', gap: '12px' }}>
@@ -331,6 +383,72 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                 onClick={() => { setMostrarForm(false); setErrForm({}); }}>CANCELAR</button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* ── Modal editar solicitud (veterinario) ── */}
+      {modalEditarSol && (
+        <div style={styles.overlay}>
+          <div style={styles.modal}>
+            <h2 style={styles.modalTitle}>EDITAR SOLICITUD #{String(modalEditarSol.id_solicitud).padStart(3, '0')}</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={styles.field}>
+                <label style={styles.label}>PACIENTE *</label>
+                <select style={styles.input} value={formEditarSol.id_paciente}
+                  onChange={e => setFormEditarSol(p => ({ ...p, id_paciente: e.target.value }))}>
+                  <option value="">Seleccionar paciente</option>
+                  {pacientes.map(p => <option key={p.id_paciente} value={p.id_paciente}>{p.nombre} - {p.dueno ?? ''}</option>)}
+                </select>
+                {errEditarSol.id_paciente && <span style={styles.err}>{errEditarSol.id_paciente}</span>}
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>ESTUDIOS * <span style={{ fontWeight: 'normal', color: '#94a3b8' }}>(puedes seleccionar varios)</span></label>
+                <CheckboxEstudios
+                  seleccionados={formEditarSol.estudiosSeleccionados}
+                  onToggle={id => setFormEditarSol(prev => ({
+                    ...prev,
+                    estudiosSeleccionados: prev.estudiosSeleccionados.includes(id)
+                      ? prev.estudiosSeleccionados.filter(e => e !== id)
+                      : [...prev.estudiosSeleccionados, id]
+                  }))}
+                />
+                {errEditarSol.estudiosSeleccionados && <span style={styles.err}>{errEditarSol.estudiosSeleccionados}</span>}
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>ANAMNESIS <span style={{ fontWeight: 'normal', color: '#94a3b8' }}>(opcional, máx. 200)</span></label>
+                <textarea style={{ ...styles.input, height: '80px', resize: 'vertical' }} maxLength={200}
+                  value={formEditarSol.notas_cliente}
+                  onChange={e => setFormEditarSol(p => ({ ...p, notas_cliente: e.target.value }))}
+                  placeholder="Observaciones" />
+              </div>
+              {errEditarSol.general && <p style={{ color: '#ef4444', fontSize: '0.85rem' }}>{errEditarSol.general}</p>}
+            </div>
+            <div style={styles.modalBtns}>
+              <button style={styles.btnCancelar} onClick={() => setModalEditarSol(null)}>CANCELAR</button>
+              <button style={{ ...styles.btnGuardar, background: '#f59e0b' }} onClick={guardarEdicionSol} disabled={guardandoEditarSol}>
+                {guardandoEditarSol ? 'GUARDANDO...' : 'GUARDAR CAMBIOS'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal confirmar eliminar solicitud ── */}
+      {modalEliminarSol && (
+        <div style={styles.overlay}>
+          <div style={{ ...styles.modal, maxWidth: '400px', textAlign: 'center' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🐾</div>
+            <h3 style={{ color: '#1e3a5f', marginBottom: '8px', fontSize: '1rem', fontWeight: '700' }}>
+              ¿Eliminar esta solicitud?
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '20px' }}>
+              Solicitud #{String(modalEliminarSol.id_solicitud).padStart(3, '0')} — {modalEliminarSol.paciente_nombre}
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              <button style={styles.btnCancelar} onClick={() => setModalEliminarSol(null)}>CANCELAR</button>
+              <button style={{ ...styles.btnGuardar, background: '#ef4444' }} onClick={eliminarSolicitud}>ELIMINAR</button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -405,7 +523,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         </div>
       )}
 
-      {/* ── Modal modificar ── */}
+      {/* ── Modal modificar (canceladas) ── */}
       {modalModificar && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
@@ -416,7 +534,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={styles.field}>
                 <label style={styles.label}>PACIENTE *</label>
-                <select style={styles.input} name="id_paciente" value={formModificar.id_paciente}
+                <select style={styles.input} value={formModificar.id_paciente}
                   onChange={e => setFormModificar(p => ({ ...p, id_paciente: e.target.value }))}>
                   <option value="">Seleccionar paciente</option>
                   {pacientes.map(p => <option key={p.id_paciente} value={p.id_paciente}>{p.nombre} - {p.dueno ?? ''}</option>)}
@@ -424,13 +542,13 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                 {errModificar.id_paciente && <span style={styles.err}>{errModificar.id_paciente}</span>}
               </div>
               <div style={styles.field}>
-                <label style={styles.label}>ESTUDIOS * <span style={{ fontWeight: 'normal', color: '#94a3b8' }}>(puedes seleccionar varios)</span></label>
+                <label style={styles.label}>ESTUDIOS *</label>
                 <CheckboxEstudios seleccionados={formModificar.estudiosSeleccionados} onToggle={toggleEstudioModificar} />
                 {errModificar.estudiosSeleccionados && <span style={styles.err}>{errModificar.estudiosSeleccionados}</span>}
               </div>
               <div style={styles.field}>
-                <label style={styles.label}>NOTAS <span style={{ fontWeight: 'normal', color: '#94a3b8' }}>(opcional, máx. 200)</span></label>
-                <input style={styles.input} type="text" maxLength={200}
+                <label style={styles.label}>NOTAS</label>
+                <textarea style={{ ...styles.input, height: '80px', resize: 'vertical' }} maxLength={200}
                   value={formModificar.notas_cliente}
                   onChange={e => setFormModificar(p => ({ ...p, notas_cliente: e.target.value }))}
                   placeholder="Observaciones" />
@@ -464,7 +582,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                 <th>PACIENTE</th>
                 {(isAdmin || isVeterinario) && <th>DUEÑO</th>}
                 <th>ESTUDIOS</th>
-                <th>NOTAS</th>
+                <th>ANAMNESIS</th>
                 <th>ESTADO</th>
                 <th>FECHA</th>
                 {isAdmin && <th style={{ textAlign: 'center' }}>ACCIONES</th>}
@@ -488,22 +606,47 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                       ))}
                     </td>
                     <td style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }}>{sol.notas_cliente || '—'}</td>
+
+                    {/* ── Columna ESTADO ── */}
                     <td>
                       {badgeEstado(sol.estado)}
+
+                      {/* Motivo cancelación */}
                       {sol.estado === 'cancelado' && sol.motivo_cancelacion && (
                         <p style={{ fontSize: '0.75rem', color: '#ef4444', margin: '4px 0 0', fontStyle: 'italic' }}>
                           Motivo: {sol.motivo_cancelacion}
                         </p>
                       )}
+
+                      {/* Botón MODIFICAR (canceladas) */}
                       {sol.estado === 'cancelado' && isVeterinario && (
                         <button className="btn-add-boutique"
-                          style={{ padding: '4px 10px', fontSize: '10px', backgroundColor: '#f59e0b', marginTop: '6px' }}
+                          style={{ padding: '4px 10px', fontSize: '10px', backgroundColor: '#f59e0b', marginTop: '6px', display: 'block' }}
                           onClick={() => abrirModalModificar(sol)}>
                           MODIFICAR
                         </button>
                       )}
+
+                      {/* Botones EDITAR / ELIMINAR (pendientes) */}
+                      {sol.estado === 'pendiente' && isVeterinario && (
+                        <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                          <button className="btn-add-boutique"
+                            style={{ padding: '4px 10px', fontSize: '10px', backgroundColor: '#f59e0b' }}
+                            onClick={() => abrirEditarSol(sol)}>
+                            EDITAR
+                          </button>
+                          <button className="btn-add-boutique"
+                            style={{ padding: '4px 10px', fontSize: '10px', backgroundColor: '#ef4444' }}
+                            onClick={() => setModalEliminarSol(sol)}>
+                            ELIMINAR
+                          </button>
+                        </div>
+                      )}
                     </td>
+
                     <td style={{ fontSize: '0.85rem' }}>{new Date(sol.fecha_solicitud).toLocaleDateString()}</td>
+
+                    {/* ── Acciones admin ── */}
                     {isAdmin && (
                       <td className="actions-cell">
                         {terminada ? (
