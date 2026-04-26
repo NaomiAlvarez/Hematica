@@ -5,7 +5,9 @@ para su modelo correspondiente.
 DRF genera automáticamente todos los endpoints CRUD
 a partir de la clase ModelViewSet.
 """
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from .models import Especie, Raza, Cliente, Paciente
 from .serializers import (
     EspecieSerializer, RazaSerializer,
@@ -14,36 +16,14 @@ from .serializers import (
 
 
 class EspecieViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para Especie.
-    Genera automáticamente los siguientes endpoints:
-      GET    /api/v1/especies/        -> lista todas las especies
-      POST   /api/v1/especies/        -> crea una especie nueva
-      GET    /api/v1/especies/{id}/   -> detalle de una especie
-      PUT    /api/v1/especies/{id}/   -> edita una especie
-      DELETE /api/v1/especies/{id}/   -> elimina una especie
-    """
     queryset = Especie.objects.all()
     serializer_class = EspecieSerializer
 
 
 class RazaViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para Raza.
-    Permite filtrar razas por especie usando ?id_especie=X en la URL.
-    Genera los mismos endpoints CRUD que EspecieViewSet pero para razas.
-    Ejemplo de filtro: GET /api/v1/razas/?id_especie=1
-    retorna solo las razas de la especie Canino.
-    """
     serializer_class = RazaSerializer
 
     def get_queryset(self):
-        """
-        Retorna el queryset de razas.
-        Si se pasa el parámetro ?id_especie=X en la URL,
-        filtra y retorna solo las razas de esa especie.
-        Si no se pasa ningún parámetro, retorna todas las razas.
-        """
         queryset = Raza.objects.all()
         id_especie = self.request.query_params.get('id_especie')
         if id_especie:
@@ -52,35 +32,14 @@ class RazaViewSet(viewsets.ModelViewSet):
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para Cliente (tutor de mascotas).
-    Genera los endpoints CRUD completos para gestionar clientes.
-    Solo el personal del laboratorio puede listar todos los clientes.
-    Un cliente solo puede ver y editar su propio perfil.
-    """
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
 
 
 class PacienteViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para Paciente (mascota).
-    Permite filtrar mascotas por cliente usando ?id_cliente=X en la URL.
-    También permite buscar por nombre usando ?nombre=X en la URL.
-    Ejemplos:
-      GET /api/v1/pacientes/?id_cliente=1  -> mascotas del cliente 1
-      GET /api/v1/pacientes/?nombre=Luna   -> mascotas que se llamen Luna
-    """
     serializer_class = PacienteSerializer
 
     def get_queryset(self):
-        """
-        Retorna el queryset de pacientes con filtros opcionales.
-        Parámetros de filtro disponibles en la URL:
-          ?id_cliente=X -> filtra las mascotas de ese cliente
-          ?nombre=X     -> filtra por nombre de mascota (búsqueda parcial)
-        Si no se pasa ningún parámetro, retorna todas las mascotas.
-        """
         queryset = Paciente.objects.all()
         id_cliente = self.request.query_params.get('id_cliente')
         nombre = self.request.query_params.get('nombre')
@@ -89,3 +48,26 @@ class PacienteViewSet(viewsets.ModelViewSet):
         if nombre:
             queryset = queryset.filter(nombre__icontains=nombre)
         return queryset
+
+    @action(detail=True, methods=['patch'])
+    def subir_cartilla(self, request, pk=None):
+        paciente = self.get_object()
+        archivo = request.FILES.get('cartilla_pdf')
+        if not archivo:
+            return Response({'error': 'No se envió ningún archivo'}, status=400)
+        if not archivo.name.lower().endswith('.pdf'):
+            return Response({'error': 'Solo se permiten archivos PDF'}, status=400)
+        if archivo.size > 10 * 1024 * 1024:
+            return Response({'error': 'El archivo no puede superar 10MB'}, status=400)
+        paciente.cartilla_pdf = archivo
+        paciente.save()
+        return Response(PacienteSerializer(paciente).data)
+
+    @action(detail=True, methods=['patch'])
+    def eliminar_cartilla(self, request, pk=None):
+        paciente = self.get_object()
+        if paciente.cartilla_pdf:
+            paciente.cartilla_pdf.delete(save=False)
+            paciente.cartilla_pdf = None
+            paciente.save()
+        return Response(PacienteSerializer(paciente).data)

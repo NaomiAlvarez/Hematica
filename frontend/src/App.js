@@ -11,6 +11,7 @@ import Solicitudes from './pages/Solicitudes';
 import ResultadoEstudio from './pages/ResultadoEstudio';
 import MisMascotas from './pages/MisMascotas';
 import MisPacientes from './pages/MisPacientes';
+import EditarCuenta from './pages/EditarCuenta';
 
 import './pages/Pages.css';
 
@@ -33,6 +34,10 @@ function App() {
     localStorage.removeItem('usuario');
   };
 
+  const handleActualizarUsuario = (nuevosDatos) => {
+    setUsuario(nuevosDatos);
+  };
+
   const isAdmin = userRole === 'admin';
   const isVeterinario = userRole === 'veterinario';
   const isUsuario = userRole === 'usuario';
@@ -49,40 +54,46 @@ function App() {
           <Route path="/pacientes" element={isLogged && isAdmin ? <Pacientes /> : <Navigate to="/" />} />
           <Route path="/empleados" element={isLogged && isAdmin ? <Empleados /> : <Navigate to="/" />} />
 
-          {/* Admin ve todos los pacientes, usuario ve los suyos, veterinario no tiene acceso */}
+          {/* Admin ve todos los pacientes, usuario ve los suyos */}
           <Route path="/mascotas" element={
             isLogged && (isAdmin || isUsuario)
               ? <MisMascotas usuario={usuario} isAdmin={isAdmin} />
               : <Navigate to="/" />
           } />
 
-          {/* Estudios: admin edita, veterinario y usuario solo ven */}
+          {/* Estudios */}
           <Route path="/estudios" element={
             isLogged
               ? <Estudios userRole={userRole} />
               : <Navigate to="/login" />
           } />
 
-          {/* Solicitudes: admin ve todas, veterinario puede crear, usuario ve las suyas */}
+          {/* Solicitudes */}
           <Route path="/solicitudes" element={
             isLogged
               ? <Solicitudes usuario={usuario} isAdmin={isAdmin} isVeterinario={isVeterinario} />
               : <Navigate to="/login" />
           } />
 
-          {/* Resultados: admin gestiona, veterinario y usuario solo ven */}
+          {/* Resultados */}
           <Route path="/resultados" element={
             isLogged
               ? <ResultadoEstudio usuario={usuario} isAdmin={isAdmin} isVeterinario={isVeterinario} />
               : <Navigate to="/login" />
           } />
 
-          {/* Mis Clientes: solo veterinario y usuario pueden ver */}
+          {/* Mis Pacientes — veterinario */}
           <Route path="/mis-pacientes" element={
             isLogged && (isVeterinario || isUsuario)
               ? <MisPacientes usuario={usuario} />
               : <Navigate to="/" />
-              
+          } />
+
+          {/* Editar cuenta — todos los roles */}
+          <Route path="/editar-cuenta" element={
+            isLogged
+              ? <EditarCuenta usuario={usuario} onActualizar={handleActualizarUsuario} />
+              : <Navigate to="/login" />
           } />
 
           <Route path="*" element={<Navigate to={isLogged ? "/" : "/login"} />} />
