@@ -29,7 +29,6 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   const [errModificar, setErrModificar] = useState({});
   const [guardandoModificar, setGuardandoModificar] = useState(false);
 
-  // ─── Editar / Eliminar solicitud (veterinario) ────────────────────────────
   const [modalEditarSol, setModalEditarSol] = useState(null);
   const [formEditarSol, setFormEditarSol] = useState({ id_paciente: '', notas_cliente: '', estudiosSeleccionados: [] });
   const [guardandoEditarSol, setGuardandoEditarSol] = useState(false);
@@ -37,6 +36,27 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   const [modalEliminarSol, setModalEliminarSol] = useState(null);
 
   const sanitizar = (valor) => valor.replace(/<[^>]*>?/gm, '');
+
+  // ── HELPERS DE COSTO ──────────────────────────────────────────────────────
+
+  const calcularTotal = (idSolicitud) => {
+    const relacionados = solicitudEstudios.filter(se => se.id_solicitud === idSolicitud);
+    return relacionados.reduce((sum, se) => {
+      const est = estudios.find(e => e.id_catalogo === se.id_catalogo);
+      return sum + (est ? parseFloat(est.precio) : 0);
+    }, 0);
+  };
+
+  const calcularTotalSeleccionados = (seleccionados) =>
+    seleccionados.reduce((sum, id) => {
+      const est = estudios.find(e => e.id_catalogo === id);
+      return sum + (est ? parseFloat(est.precio) : 0);
+    }, 0);
+
+  const formatPrecio = (n) =>
+    n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+
+  // ── CARGA DE DATOS ────────────────────────────────────────────────────────
 
   const cargarSolicitudes = useCallback(async () => {
     try {
@@ -46,31 +66,53 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
 
       if (isAdmin) {
         setSolicitudes(datos);
+
       } else if (isVeterinario && usuario) {
         try {
-          const resClientes = await fetch(`http://localhost:8000/api/v1/veterinarios/mis_clientes/?id_usuario=${usuario.id_usuario}`);
+          const resClientes = await fetch(
+            `http://localhost:8000/api/v1/veterinarios/mis_clientes/?id_usuario=${usuario.id_usuario}`
+          );
+
           if (resClientes.ok) {
             const misClientes = await resClientes.json();
-            const pacientesPromises = misClientes.map(c =>
-              fetch(`http://localhost:8000/api/v1/pacientes/?id_cliente=${c.id_cliente}`).then(r => r.json())
-            );
-            const pacientesPorCliente = await Promise.all(pacientesPromises);
-            const todosPacientes = pacientesPorCliente.flat();
-            setPacientes(todosPacientes);
-            setSolicitudes(datos.filter(s => todosPacientes.map(p => p.id_paciente).includes(s.id_paciente)));
+
+            if (misClientes.length === 0) {
+              // Sin clientes asignados — muestra todos los pacientes y todas las solicitudes
+              // para que el vet pueda operar igual mientras el admin le asigna clientes
+              const resP = await fetch('http://localhost:8000/api/v1/pacientes/');
+              const todosP = resP.ok ? await resP.json() : [];
+              setPacientes(todosP);
+              setSolicitudes(datos);
+            } else {
+              // Con clientes asignados — filtra solo sus pacientes y solicitudes
+              const pacientesPromises = misClientes.map(c =>
+                fetch(`http://localhost:8000/api/v1/pacientes/?id_cliente=${c.id_cliente}`)
+                  .then(r => r.json())
+              );
+              const pacientesPorCliente = await Promise.all(pacientesPromises);
+              const todosPacientes = pacientesPorCliente.flat();
+              setPacientes(todosPacientes);
+              setSolicitudes(
+                datos.filter(s => todosPacientes.map(p => p.id_paciente).includes(s.id_paciente))
+              );
+            }
           } else {
+            // Endpoint falló — fallback a todos
             const resP = await fetch('http://localhost:8000/api/v1/pacientes/');
             const todosP = resP.ok ? await resP.json() : [];
             setPacientes(todosP);
             setSolicitudes(datos);
           }
         } catch {
+          // Error de red — fallback a todos
           const resP = await fetch('http://localhost:8000/api/v1/pacientes/');
           const todosP = resP.ok ? await resP.json() : [];
           setPacientes(todosP);
           setSolicitudes(datos);
         }
+
       } else if (usuario) {
+        // Cliente normal — solo sus mascotas
         const resC = await fetch('http://localhost:8000/api/v1/clientes/');
         const cs = await resC.json();
         const miCliente = cs.find(c => String(c.id_usuario) === String(usuario.id_usuario));
@@ -97,6 +139,8 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
 
   const recargarEstudios = () =>
     fetch('http://localhost:8000/api/v1/solicitud-estudios/').then(r => r.json()).then(setSolicitudEstudios);
+
+  // ── FORMULARIO ────────────────────────────────────────────────────────────
 
   const toggleEstudio = (id) => {
     setForm(prev => ({
@@ -133,7 +177,11 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     try {
       const resSol = await fetch('http://localhost:8000/api/v1/solicitudes/', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_paciente: parseInt(form.id_paciente), estado: 'pendiente', notas_cliente: form.notas_cliente.trim() })
+        body: JSON.stringify({
+          id_paciente: parseInt(form.id_paciente),
+          estado: 'pendiente',
+          notas_cliente: form.notas_cliente.trim()
+        })
       });
       if (!resSol.ok) { setErrForm({ general: 'Error al crear solicitud' }); return; }
       const nuevaSol = await resSol.json();
@@ -149,6 +197,8 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
       recargarEstudios();
     } catch { setErrForm({ general: 'Error al conectar con el servidor' }); }
   };
+
+  // ── ACCIONES ADMIN ────────────────────────────────────────────────────────
 
   const accionAdmin = async (sol, nuevoEstado) => {
     setErrEstado('');
@@ -172,8 +222,9 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: 'cancelado', motivo_cancelacion: motivoCancelacion.trim() })
       });
-      if (res.ok) { setModalRechazar(null); setMotivoCancelacion(''); setErrMotivo(''); cargarSolicitudes(); }
-      else setErrMotivo('Error al cancelar.');
+      if (res.ok) {
+        setModalRechazar(null); setMotivoCancelacion(''); setErrMotivo(''); cargarSolicitudes();
+      } else setErrMotivo('Error al cancelar.');
     } catch { setErrMotivo('Error al conectar.'); }
     finally { setProcesando(null); }
   };
@@ -190,8 +241,10 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
       const r1 = await fetch('http://localhost:8000/api/v1/resultados/', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id_solicitud: modalFinalizar.id_solicitud, id_vet: parseInt(formResultado.id_vet),
-          fecha_muestra: formResultado.fecha_muestra, observaciones: formResultado.observaciones.trim(),
+          id_solicitud: modalFinalizar.id_solicitud,
+          id_vet: parseInt(formResultado.id_vet),
+          fecha_muestra: formResultado.fecha_muestra,
+          observaciones: formResultado.observaciones.trim(),
           reporte_clinico: formResultado.reporte_clinico.trim()
         })
       });
@@ -208,8 +261,12 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     finally { setGuardandoResultado(false); }
   };
 
+  // ── MODIFICAR / EDITAR / ELIMINAR ────────────────────────────────────────
+
   const abrirModalModificar = (sol) => {
-    const estudiosActuales = solicitudEstudios.filter(se => se.id_solicitud === sol.id_solicitud).map(se => se.id_catalogo);
+    const estudiosActuales = solicitudEstudios
+      .filter(se => se.id_solicitud === sol.id_solicitud)
+      .map(se => se.id_catalogo);
     setFormModificar({ id_paciente: sol.id_paciente, notas_cliente: sol.notas_cliente || '', estudiosSeleccionados: estudiosActuales });
     setErrModificar({});
     setModalModificar(sol);
@@ -231,11 +288,18 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     try {
       const r1 = await fetch(`http://localhost:8000/api/v1/solicitudes/${modalModificar.id_solicitud}/`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_paciente: parseInt(formModificar.id_paciente), estado: 'pendiente', notas_cliente: formModificar.notas_cliente.trim(), motivo_cancelacion: null })
+        body: JSON.stringify({
+          id_paciente: parseInt(formModificar.id_paciente),
+          estado: 'pendiente',
+          notas_cliente: formModificar.notas_cliente.trim(),
+          motivo_cancelacion: null
+        })
       });
       if (!r1.ok) { setErrModificar({ general: 'Error al actualizar.' }); return; }
       const anteriores = solicitudEstudios.filter(se => se.id_solicitud === modalModificar.id_solicitud);
-      await Promise.all(anteriores.map(se => fetch(`http://localhost:8000/api/v1/solicitud-estudios/${se.id}/`, { method: 'DELETE' })));
+      await Promise.all(anteriores.map(se =>
+        fetch(`http://localhost:8000/api/v1/solicitud-estudios/${se.id}/`, { method: 'DELETE' })
+      ));
       await Promise.all(formModificar.estudiosSeleccionados.map(id =>
         fetch('http://localhost:8000/api/v1/solicitud-estudios/', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -249,9 +313,10 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     finally { setGuardandoModificar(false); }
   };
 
-  // ─── Editar solicitud (veterinario) ──────────────────────────────────────
   const abrirEditarSol = (sol) => {
-    const estudiosActuales = solicitudEstudios.filter(se => se.id_solicitud === sol.id_solicitud).map(se => se.id_catalogo);
+    const estudiosActuales = solicitudEstudios
+      .filter(se => se.id_solicitud === sol.id_solicitud)
+      .map(se => se.id_catalogo);
     setFormEditarSol({ id_paciente: sol.id_paciente, notas_cliente: sol.notas_cliente || '', estudiosSeleccionados: estudiosActuales });
     setErrEditarSol({});
     setModalEditarSol(sol);
@@ -264,11 +329,16 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     try {
       const r1 = await fetch(`http://localhost:8000/api/v1/solicitudes/${modalEditarSol.id_solicitud}/`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_paciente: parseInt(formEditarSol.id_paciente), notas_cliente: formEditarSol.notas_cliente.trim() })
+        body: JSON.stringify({
+          id_paciente: parseInt(formEditarSol.id_paciente),
+          notas_cliente: formEditarSol.notas_cliente.trim()
+        })
       });
       if (!r1.ok) { setErrEditarSol({ general: 'Error al actualizar.' }); return; }
       const anteriores = solicitudEstudios.filter(se => se.id_solicitud === modalEditarSol.id_solicitud);
-      await Promise.all(anteriores.map(se => fetch(`http://localhost:8000/api/v1/solicitud-estudios/${se.id}/`, { method: 'DELETE' })));
+      await Promise.all(anteriores.map(se =>
+        fetch(`http://localhost:8000/api/v1/solicitud-estudios/${se.id}/`, { method: 'DELETE' })
+      ));
       await Promise.all(formEditarSol.estudiosSeleccionados.map(id =>
         fetch('http://localhost:8000/api/v1/solicitud-estudios/', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -282,11 +352,12 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     finally { setGuardandoEditarSol(false); }
   };
 
-  // ─── Eliminar solicitud (veterinario) ─────────────────────────────────────
   const eliminarSolicitud = async () => {
     try {
       const anteriores = solicitudEstudios.filter(se => se.id_solicitud === modalEliminarSol.id_solicitud);
-      await Promise.all(anteriores.map(se => fetch(`http://localhost:8000/api/v1/solicitud-estudios/${se.id}/`, { method: 'DELETE' })));
+      await Promise.all(anteriores.map(se =>
+        fetch(`http://localhost:8000/api/v1/solicitud-estudios/${se.id}/`, { method: 'DELETE' })
+      ));
       const res = await fetch(`http://localhost:8000/api/v1/solicitudes/${modalEliminarSol.id_solicitud}/`, { method: 'DELETE' });
       if (!res.ok) throw new Error();
       setModalEliminarSol(null);
@@ -298,9 +369,39 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     }
   };
 
+  // ── COMPONENTES INTERNOS ─────────────────────────────────────────────────
+
   const badgeEstado = (estado) => (
-    <span className={`status-badge status-${estado.toLowerCase()}`}>{estado.replace(/_/g, ' ')}</span>
+    <span className={`status-badge status-${estado.toLowerCase()}`}>
+      {estado.replace(/_/g, ' ')}
+    </span>
   );
+
+  const ResumenCosto = ({ seleccionados }) => {
+    if (seleccionados.length === 0) return null;
+    return (
+      <div style={{ marginTop: '10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px' }}>
+        <p style={{ fontSize: '11px', fontWeight: '700', color: '#15803d', letterSpacing: '1px', marginBottom: '8px' }}>
+          RESUMEN DE COSTOS
+        </p>
+        {seleccionados.map(id => {
+          const est = estudios.find(e => e.id_catalogo === id);
+          return est ? (
+            <div key={id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.83rem', color: '#374151', marginBottom: '4px' }}>
+              <span>{est.nombre}</span>
+              <span style={{ fontWeight: '600' }}>{formatPrecio(parseFloat(est.precio))}</span>
+            </div>
+          ) : null;
+        })}
+        <div style={{ borderTop: '1px solid #bbf7d0', marginTop: '8px', paddingTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#15803d' }}>TOTAL</span>
+          <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#15803d' }}>
+            {formatPrecio(calcularTotalSeleccionados(seleccionados))}
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   const CheckboxEstudios = ({ seleccionados, onToggle }) => (
     <div style={{
@@ -321,13 +422,15 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
               style={{ accentColor: '#0369a1', width: '16px', height: '16px' }} />
             <span style={{ fontSize: '0.85rem' }}>
               <strong>{e.nombre}</strong>
-              <span style={{ color: '#64748b', marginLeft: '4px' }}>${e.precio}</span>
+              <span style={{ color: '#64748b', marginLeft: '4px' }}>{formatPrecio(parseFloat(e.precio))}</span>
             </span>
           </label>
         );
       })}
     </div>
   );
+
+  // ── RENDER ───────────────────────────────────────────────────────────────
 
   return (
     <div className="page-container">
@@ -350,9 +453,12 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div className="input-group">
               <label>PACIENTE *</label>
-              <select name="id_paciente" value={form.id_paciente} onChange={handleChange} className={errForm.id_paciente ? 'input-error' : ''}>
+              <select name="id_paciente" value={form.id_paciente} onChange={handleChange}
+                className={errForm.id_paciente ? 'input-error' : ''}>
                 <option value="">Seleccionar paciente</option>
-                {pacientes.map(p => <option key={p.id_paciente} value={p.id_paciente}>{p.nombre} - {p.dueno ?? ''}</option>)}
+                {pacientes.map(p => (
+                  <option key={p.id_paciente} value={p.id_paciente}>{p.nombre} - {p.dueno ?? ''}</option>
+                ))}
               </select>
               {errForm.id_paciente && <span className="error-message">{errForm.id_paciente}</span>}
             </div>
@@ -360,11 +466,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
               <label>ESTUDIOS * <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(puedes seleccionar varios)</span></label>
               <CheckboxEstudios seleccionados={form.estudiosSeleccionados} onToggle={toggleEstudio} />
               {errForm.estudiosSeleccionados && <span className="error-message">{errForm.estudiosSeleccionados}</span>}
-              {form.estudiosSeleccionados.length > 0 && (
-                <p style={{ fontSize: '0.8rem', color: '#0369a1', marginTop: '6px' }}>
-                  {form.estudiosSeleccionados.length} estudio(s): {form.estudiosSeleccionados.map(id => estudios.find(e => e.id_catalogo === id)?.nombre).join(', ')}
-                </p>
-              )}
+              <ResumenCosto seleccionados={form.estudiosSeleccionados} />
             </div>
             <div className="input-group">
               <label>ANAMNESIS <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(prellenado con anamnesis del paciente — máx. 200)</span></label>
@@ -373,7 +475,6 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', resize: 'vertical', boxSizing: 'border-box' }} />
               <span style={{ fontSize: '11px', color: form.notas_cliente.length > 180 ? '#ef4444' : '#94a3b8' }}>
                 {form.notas_cliente.length}/200
-  
               </span>
             </div>
             {errForm.general && <p style={{ color: '#ef4444', fontSize: '0.85rem' }}>{errForm.general}</p>}
@@ -397,7 +498,9 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                 <select style={styles.input} value={formEditarSol.id_paciente}
                   onChange={e => setFormEditarSol(p => ({ ...p, id_paciente: e.target.value }))}>
                   <option value="">Seleccionar paciente</option>
-                  {pacientes.map(p => <option key={p.id_paciente} value={p.id_paciente}>{p.nombre} - {p.dueno ?? ''}</option>)}
+                  {pacientes.map(p => (
+                    <option key={p.id_paciente} value={p.id_paciente}>{p.nombre} - {p.dueno ?? ''}</option>
+                  ))}
                 </select>
                 {errEditarSol.id_paciente && <span style={styles.err}>{errEditarSol.id_paciente}</span>}
               </div>
@@ -413,6 +516,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                   }))}
                 />
                 {errEditarSol.estudiosSeleccionados && <span style={styles.err}>{errEditarSol.estudiosSeleccionados}</span>}
+                <ResumenCosto seleccionados={formEditarSol.estudiosSeleccionados} />
               </div>
               <div style={styles.field}>
                 <label style={styles.label}>ANAMNESIS <span style={{ fontWeight: 'normal', color: '#94a3b8' }}>(opcional, máx. 200)</span></label>
@@ -457,7 +561,9 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         <div style={styles.overlay}>
           <div style={{ ...styles.modal, maxWidth: '480px' }}>
             <h2 style={styles.modalTitle}>RECHAZAR SOLICITUD #{String(modalRechazar.id_solicitud).padStart(3, '0')}</h2>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px' }}>Paciente: <strong>{modalRechazar.paciente_nombre}</strong></p>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px' }}>
+              Paciente: <strong>{modalRechazar.paciente_nombre}</strong>
+            </p>
             <div style={styles.field}>
               <label style={styles.label}>MOTIVO DE CANCELACIÓN *</label>
               <textarea style={{ ...styles.input, height: '100px', resize: 'vertical' }}
@@ -468,8 +574,12 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
               {errMotivo && <span style={styles.err}>{errMotivo}</span>}
             </div>
             <div style={styles.modalBtns}>
-              <button style={styles.btnCancelar} onClick={() => { setModalRechazar(null); setMotivoCancelacion(''); setErrMotivo(''); }}>CANCELAR</button>
-              <button style={{ ...styles.btnGuardar, background: '#ef4444' }} onClick={rechazarSolicitud}>CONFIRMAR RECHAZO</button>
+              <button style={styles.btnCancelar} onClick={() => { setModalRechazar(null); setMotivoCancelacion(''); setErrMotivo(''); }}>
+                CANCELAR
+              </button>
+              <button style={{ ...styles.btnGuardar, background: '#ef4444' }} onClick={rechazarSolicitud}>
+                CONFIRMAR RECHAZO
+              </button>
             </div>
           </div>
         </div>
@@ -480,11 +590,35 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         <div style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={styles.modalTitle}>FINALIZAR SOLICITUD #{String(modalFinalizar.id_solicitud).padStart(3, '0')}</h2>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '20px' }}>Paciente: <strong>{modalFinalizar.paciente_nombre}</strong></p>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '4px' }}>
+              Paciente: <strong>{modalFinalizar.paciente_nombre}</strong>
+            </p>
+            {/* Desglose de costos en modal finalizar */}
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px', marginBottom: '20px' }}>
+              <p style={{ fontSize: '11px', fontWeight: '700', color: '#15803d', letterSpacing: '1px', marginBottom: '6px' }}>
+                ESTUDIOS A PROCESAR
+              </p>
+              {solicitudEstudios.filter(se => se.id_solicitud === modalFinalizar.id_solicitud).map(se => {
+                const est = estudios.find(e => e.id_catalogo === se.id_catalogo);
+                return (
+                  <div key={se.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.83rem', color: '#374151', marginBottom: '3px' }}>
+                    <span>{se.estudio_nombre}</span>
+                    <span style={{ fontWeight: '600' }}>{est ? formatPrecio(parseFloat(est.precio)) : '—'}</span>
+                  </div>
+                );
+              })}
+              <div style={{ borderTop: '1px solid #bbf7d0', marginTop: '6px', paddingTop: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontWeight: '700', color: '#15803d', fontSize: '0.9rem' }}>TOTAL</span>
+                <span style={{ fontWeight: '700', color: '#15803d', fontSize: '0.9rem' }}>
+                  {formatPrecio(calcularTotal(modalFinalizar.id_solicitud))}
+                </span>
+              </div>
+            </div>
             <div style={styles.grid}>
               <div style={styles.field}>
                 <label style={styles.label}>VETERINARIO *</label>
-                <select style={styles.input} name="id_vet" value={formResultado.id_vet} onChange={e => setFormResultado(p => ({ ...p, id_vet: e.target.value }))}>
+                <select style={styles.input} value={formResultado.id_vet}
+                  onChange={e => setFormResultado(p => ({ ...p, id_vet: e.target.value }))}>
                   <option value="">Selecciona un veterinario</option>
                   {veterinarios.map(v => <option key={v.id_vet} value={v.id_vet}>{v.nombre}</option>)}
                 </select>
@@ -492,20 +626,22 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
               </div>
               <div style={styles.field}>
                 <label style={styles.label}>FECHA DE MUESTRA *</label>
-                <input style={styles.input} type="datetime-local" name="fecha_muestra"
-                  value={formResultado.fecha_muestra} onChange={e => setFormResultado(p => ({ ...p, fecha_muestra: e.target.value }))} />
+                <input style={styles.input} type="datetime-local"
+                  value={formResultado.fecha_muestra}
+                  onChange={e => setFormResultado(p => ({ ...p, fecha_muestra: e.target.value }))} />
                 {errResultado.fecha_muestra && <span style={styles.err}>{errResultado.fecha_muestra}</span>}
               </div>
               <div style={{ ...styles.field, gridColumn: '1/-1' }}>
                 <label style={styles.label}>OBSERVACIONES <span style={{ fontWeight: 'normal', color: '#94a3b8' }}>(opcional, máx. 300)</span></label>
-                <input style={styles.input} type="text" name="observaciones" maxLength={300}
-                  value={formResultado.observaciones} onChange={e => setFormResultado(p => ({ ...p, observaciones: e.target.value }))}
+                <input style={styles.input} type="text" maxLength={300}
+                  value={formResultado.observaciones}
+                  onChange={e => setFormResultado(p => ({ ...p, observaciones: e.target.value }))}
                   placeholder="Observaciones generales" />
               </div>
               <div style={{ ...styles.field, gridColumn: '1/-1' }}>
                 <label style={styles.label}>REPORTE CLÍNICO * <span style={{ fontWeight: 'normal', color: '#94a3b8' }}>(mín. 20, máx. 1000)</span></label>
                 <textarea style={{ ...styles.input, height: '100px', resize: 'vertical' }} maxLength={1000}
-                  name="reporte_clinico" value={formResultado.reporte_clinico}
+                  value={formResultado.reporte_clinico}
                   onChange={e => setFormResultado(p => ({ ...p, reporte_clinico: e.target.value }))}
                   placeholder="Describe los resultados del estudio..." />
                 <span style={{ fontSize: '11px', color: '#94a3b8' }}>{formResultado.reporte_clinico.length}/1000</span>
@@ -537,7 +673,9 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                 <select style={styles.input} value={formModificar.id_paciente}
                   onChange={e => setFormModificar(p => ({ ...p, id_paciente: e.target.value }))}>
                   <option value="">Seleccionar paciente</option>
-                  {pacientes.map(p => <option key={p.id_paciente} value={p.id_paciente}>{p.nombre} - {p.dueno ?? ''}</option>)}
+                  {pacientes.map(p => (
+                    <option key={p.id_paciente} value={p.id_paciente}>{p.nombre} - {p.dueno ?? ''}</option>
+                  ))}
                 </select>
                 {errModificar.id_paciente && <span style={styles.err}>{errModificar.id_paciente}</span>}
               </div>
@@ -545,6 +683,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                 <label style={styles.label}>ESTUDIOS *</label>
                 <CheckboxEstudios seleccionados={formModificar.estudiosSeleccionados} onToggle={toggleEstudioModificar} />
                 {errModificar.estudiosSeleccionados && <span style={styles.err}>{errModificar.estudiosSeleccionados}</span>}
+                <ResumenCosto seleccionados={formModificar.estudiosSeleccionados} />
               </div>
               <div style={styles.field}>
                 <label style={styles.label}>NOTAS</label>
@@ -581,7 +720,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                 <th>FOLIO</th>
                 <th>PACIENTE</th>
                 {(isAdmin || isVeterinario) && <th>DUEÑO</th>}
-                <th>ESTUDIOS</th>
+                <th>ESTUDIOS Y COSTO</th>
                 <th>ANAMNESIS</th>
                 <th>ESTADO</th>
                 <th>FECHA</th>
@@ -592,33 +731,55 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
               {solicitudes.map((sol) => {
                 const enProceso = procesando === sol.id_solicitud;
                 const terminada = sol.estado === 'cancelado' || sol.estado === 'finalizado';
+                const estudiosDeSol = solicitudEstudios.filter(se => se.id_solicitud === sol.id_solicitud);
+                const totalSol = calcularTotal(sol.id_solicitud);
                 return (
                   <tr key={sol.id_solicitud}>
                     <td className="id-cell">#{String(sol.id_solicitud).padStart(3, '0')}</td>
                     <td className="name-cell">{sol.paciente_nombre}</td>
                     {(isAdmin || isVeterinario) && <td style={{ fontSize: '0.85rem' }}>{sol.dueno}</td>}
+
+                    {/* ── ESTUDIOS Y COSTO ── */}
                     <td>
-                      {solicitudEstudios.filter(se => se.id_solicitud === sol.id_solicitud).map(se => (
-                        <span key={se.id} style={{
-                          display: 'inline-block', background: '#e0f2fe', color: '#0369a1',
-                          borderRadius: '4px', padding: '2px 6px', margin: '2px', fontSize: '0.75rem'
-                        }}>{se.estudio_nombre}</span>
-                      ))}
+                      {estudiosDeSol.map(se => {
+                        const est = estudios.find(e => e.id_catalogo === se.id_catalogo);
+                        return (
+                          <div key={se.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '3px' }}>
+                            <span style={{
+                              display: 'inline-block', background: '#e0f2fe', color: '#0369a1',
+                              borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem'
+                            }}>{se.estudio_nombre}</span>
+                            {est && (
+                              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600' }}>
+                                {formatPrecio(parseFloat(est.precio))}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {estudiosDeSol.length > 0 && (
+                        <div style={{
+                          marginTop: '4px', paddingTop: '4px', borderTop: '1px solid #e2e8f0',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                        }}>
+                          <span style={{ fontSize: '0.72rem', color: '#374151', fontWeight: '700' }}>TOTAL</span>
+                          <span style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: '700' }}>
+                            {formatPrecio(totalSol)}
+                          </span>
+                        </div>
+                      )}
                     </td>
+
                     <td style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }}>{sol.notas_cliente || '—'}</td>
 
-                    {/* ── Columna ESTADO ── */}
+                    {/* ── ESTADO ── */}
                     <td>
                       {badgeEstado(sol.estado)}
-
-                      {/* Motivo cancelación */}
                       {sol.estado === 'cancelado' && sol.motivo_cancelacion && (
                         <p style={{ fontSize: '0.75rem', color: '#ef4444', margin: '4px 0 0', fontStyle: 'italic' }}>
                           Motivo: {sol.motivo_cancelacion}
                         </p>
                       )}
-
-                      {/* Botón MODIFICAR (canceladas) */}
                       {sol.estado === 'cancelado' && isVeterinario && (
                         <button className="btn-add-boutique"
                           style={{ padding: '4px 10px', fontSize: '10px', backgroundColor: '#f59e0b', marginTop: '6px', display: 'block' }}
@@ -626,8 +787,6 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                           MODIFICAR
                         </button>
                       )}
-
-                      {/* Botones EDITAR / ELIMINAR (pendientes) */}
                       {sol.estado === 'pendiente' && isVeterinario && (
                         <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
                           <button className="btn-add-boutique"
@@ -646,7 +805,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
 
                     <td style={{ fontSize: '0.85rem' }}>{new Date(sol.fecha_solicitud).toLocaleDateString()}</td>
 
-                    {/* ── Acciones admin ── */}
+                    {/* ── ACCIONES ADMIN ── */}
                     {isAdmin && (
                       <td className="actions-cell">
                         {terminada ? (
