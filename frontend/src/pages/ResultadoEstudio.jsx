@@ -13,14 +13,18 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
       if (!res.ok) throw new Error();
       const datos = await res.json();
 
+      // SI ES ADMINISTRADOR:
+      // El backend le envía todo (objects.all) y aquí lo mostramos 
+      // para que pueda gestionar los PDFs.
       if (isAdmin) {
         setResultados(datos);
 
       } else if (isVeterinario && usuario) {
-        // Fallback: muestra todos hasta que mis_clientes esté listo
+        // El veterinario también ve todo (según la lógica actual de tus compañeros)
         setResultados(datos);
 
       } else if (usuario) {
+        // Lógica de filtrado para clientes (dueños de mascotas)
         const resC = await fetch('http://localhost:8000/api/v1/clientes/');
         const cs = await resC.json();
         const miCliente = cs.find(c => String(c.id_usuario) === String(usuario.id_usuario));
@@ -31,13 +35,12 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
           setResultados(datos.filter(r => nombresMascotas.includes(r.paciente_nombre)));
         }
       }
-    } catch { setError('No se pudieron cargar los resultados.'); }
-    finally { setLoading(false); }
+    } catch { 
+      setError('No se pudieron cargar los resultados.'); 
+    } finally { 
+      setLoading(false); 
+    }
   }, [isAdmin, isVeterinario, usuario]);
-
-  useEffect(() => {
-    cargarResultados();
-  }, [cargarResultados]);
 
   const handleSubirPdf = async (idResultado, archivo) => {
     if (!archivo) return;
@@ -74,11 +77,10 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
       else alert('Error al eliminar el PDF');
     } catch { alert('Error al conectar con el servidor'); }
   };
-
-  return (
+return (
     <div className="page-container">
-      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
+      <header className="page-header-boutique">
+        <div className="header-text">
           <h1 className="title-boutique">
             {isAdmin ? 'RESULTADOS' : isVeterinario ? 'RESULTADOS DE MIS CLIENTES' : 'MIS RESULTADOS'}
           </h1>
@@ -93,11 +95,17 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
       </header>
 
       {loading ? (
-        <p className="subtitle-boutique">Cargando...</p>
+        <div className="header-text">
+          <p className="subtitle-boutique">Cargando...</p>
+        </div>
       ) : error ? (
-        <p style={{ color: '#ef4444' }}>{error}</p>
+        <div className="header-text">
+          <p style={{ color: '#ef4444' }}>{error}</p>
+        </div>
       ) : resultados.length === 0 ? (
-        <p className="subtitle-boutique">No hay reportes clínicos registrados.</p>
+        <div className="header-text">
+          <p className="subtitle-boutique">No hay reportes clínicos registrados.</p>
+        </div>
       ) : (
         <div className="table-responsive">
           <table className="boutique-table">
@@ -132,12 +140,12 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
                       <div style={{ display: 'flex', gap: '6px', flexDirection: 'column' }}>
                         <a href={res.archivo_pdf} target="_blank" rel="noreferrer"
                           className="btn-add-boutique"
-                          style={{ padding: '6px 12px', fontSize: '10px', backgroundColor: '#16a34a', textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>
+                          style={{ padding: '6px 12px', fontSize: '10px', backgroundColor: '#16a34a', textDecoration: 'none', display: 'inline-block', textAlign: 'center', width: 'auto', height: 'auto' }}>
                           ⬇ DESCARGAR
                         </a>
                         {isAdmin && (
                           <button className="btn-add-boutique"
-                            style={{ padding: '6px 12px', fontSize: '10px', backgroundColor: '#dc2626' }}
+                            style={{ padding: '6px 12px', fontSize: '10px', backgroundColor: '#dc2626', width: 'auto', height: 'auto' }}
                             onClick={() => handleEliminarPdf(res.id_resultado)}>
                             🗑 ELIMINAR
                           </button>
@@ -146,7 +154,7 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
                     ) : isAdmin ? (
                       <label style={{ cursor: 'pointer' }}>
                         <span className="btn-add-boutique"
-                          style={{ padding: '6px 12px', fontSize: '10px', backgroundColor: '#7c3aed', display: 'inline-block' }}>
+                          style={{ padding: '6px 12px', fontSize: '10px', backgroundColor: '#7c3aed', display: 'inline-block', width: 'auto', height: 'auto' }}>
                           {subiendoPdf === res.id_resultado ? 'SUBIENDO...' : '📤 SUBIR PDF'}
                         </span>
                         <input type="file" accept=".pdf" style={{ display: 'none' }}

@@ -434,17 +434,24 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
 
   return (
     <div className="page-container">
-      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
-          <h1 className="title-boutique">SOLICITUDES</h1>
-          <p className="subtitle-boutique">
-            {isAdmin ? 'Aprobación de órdenes de laboratorio' : isVeterinario ? 'Órdenes de mis clientes' : 'Mis órdenes de estudio'}
-          </p>
-        </div>
-        {isVeterinario && (
-          <button className="btn-add-boutique" onClick={() => { setMostrarForm(!mostrarForm); setErrForm({}); }}>+</button>
-        )}
-      </header>
+   <header className="page-header-boutique">
+  <div className="header-text">
+    <h1 className="title-boutique">SOLICITUDES</h1>
+    <p className="subtitle-boutique">
+      {isAdmin ? 'Aprobación de órdenes de laboratorio' : isVeterinario ? 'Órdenes de mis clientes' : 'Mis órdenes de estudio'}
+    </p>
+  </div>
+
+  {/* Solo el Veterinario verá el botón de agregar */}
+  {isVeterinario && (
+    <button 
+      className="btn-add-boutique" 
+      onClick={() => { setMostrarForm(!mostrarForm); setErrForm({}); }}
+    >
+      +
+    </button>
+  )}
+</header>
 
       {/* ── Form nueva solicitud ── */}
       {mostrarForm && isVeterinario && (
@@ -862,7 +869,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         </div>
       )}
     </div>
-  );
+  ); //RETURN
 };
 
 const styles = {
