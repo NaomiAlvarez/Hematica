@@ -10,6 +10,11 @@ root.render(
     <App />
   </React.StrictMode>
 );
+document.addEventListener('input', function (e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    e.target.value = e.target.value.toUpperCase();
+  }
+});
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
