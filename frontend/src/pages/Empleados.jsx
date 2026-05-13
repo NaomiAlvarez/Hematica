@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
 
 const Empleados = () => {
@@ -9,6 +10,9 @@ const Empleados = () => {
   const [guardando, setGuardando] = useState(false);
   const [editandoItem, setEditandoItem] = useState(null); // null = nuevo, objeto = editando
   const [errForm, setErrForm] = useState({});
+  const [busqueda, setBusqueda] = useState('');
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
   const [form, setForm] = useState({
     nombre: '', correo: '', password: '', num_tel: '',
     id_tipo_usuario: '', nombre_clinica: '', direccion: '', curp: '', cedula: '',
@@ -181,7 +185,7 @@ const Empleados = () => {
     if (!verVeterinarios && (!form.direccion.trim() || form.direccion.trim().length < 10))
       errores.direccion = 'La dirección debe tener al menos 10 caracteres';
 
-    if (!editandoItem && String(form.id_tipo_usuario) === '2' || editandoItem && verVeterinarios) {
+    if ((!editandoItem && String(form.id_tipo_usuario) === '2') || (editandoItem && verVeterinarios)) {
       const curpRegex = /^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[0-9A-Z]{2}$/;
       if (!form.curp || !curpRegex.test(form.curp))
         errores.curp = 'CURP inválido. Formato: 4 letras, 6 números, H/M, 5 letras, 2 alfanuméricos';
@@ -329,6 +333,31 @@ const Empleados = () => {
     c => !clientesAsignados.some(a => a.id_cliente === c.id_cliente)
   );
 
+  const empleadosFiltrados = useMemo(() => {
+    const texto = normalizeText(busqueda);
+    if (!texto) return empleados;
+
+    return empleados.filter((item) => normalizeText([
+      item.nombre,
+      item.puesto,
+      item.nombre_clinica,
+      item.clinica,
+      item.telefono,
+      item.cedula,
+      item.curp,
+      verVeterinarios ? 'veterinario' : 'empleado',
+    ].join(' ')).includes(texto));
+  }, [empleados, busqueda, verVeterinarios]);
+
+  const empleadosPaginados = useMemo(
+    () => getPaginatedItems(empleadosFiltrados, pagina, porPagina),
+    [empleadosFiltrados, pagina, porPagina]
+  );
+
+  useEffect(() => {
+    setPagina(1);
+  }, [busqueda, verVeterinarios, porPagina]);
+
   return (
     <div className="page-container">
       <header className="page-header-boutique">
@@ -337,7 +366,7 @@ const Empleados = () => {
           <p className="subtitle-boutique">Gestión de capital humano y especialistas</p>
         </div>
         <button className="btn-add-boutique" onClick={abrirNuevo}>
-          <span>+</span>
+          <span className="plus-icon">+</span> Nuevo empleado
         </button>
       </header>
 
@@ -473,10 +502,22 @@ const Empleados = () => {
       </div>
 
       {/* ── TABLA ── */}
+      <ListingControls
+        search={busqueda}
+        onSearchChange={setBusqueda}
+        searchPlaceholder={verVeterinarios ? 'Nombre, clinica, cedula o telefono' : 'Nombre, puesto, clinica o telefono'}
+        totalItems={empleados.length}
+        filteredItems={empleadosFiltrados.length}
+        page={pagina}
+        pageSize={porPagina}
+        onPageChange={setPagina}
+        onPageSizeChange={setPorPagina}
+      />
+
       {loading ? (
         <p className="subtitle-boutique">Cargando...</p>
-      ) : empleados.length === 0 ? (
-        <p className="subtitle-boutique">No hay {verVeterinarios ? 'veterinarios' : 'empleados'} registrados.</p>
+      ) : empleadosFiltrados.length === 0 ? (
+        <p className="subtitle-boutique">No hay {verVeterinarios ? 'veterinarios' : 'empleados'} que coincidan con la busqueda.</p>
       ) : (
         <div className="table-responsive">
           <table className="boutique-table">
@@ -503,7 +544,7 @@ const Empleados = () => {
               </tr>
             </thead>
             <tbody>
-              {empleados.map((item) => (
+              {empleadosPaginados.map((item) => (
                 <React.Fragment key={item.id_emp || item.id_vet}>
                   <tr>
                     {verVeterinarios ? (

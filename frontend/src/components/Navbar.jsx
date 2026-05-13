@@ -50,6 +50,8 @@ const Navbar = ({ userRole, onLogout, usuario }) => {
 
         {isAdmin && (
           <>
+            <Link to="/dashboard" className="nav-item">DASHBOARD</Link>
+            <Link to="/usuarios" className="nav-item">USUARIOS</Link>
             <Link to="/mascotas" className="nav-item">PACIENTES</Link>
             <Link to="/empleados" className="nav-item">EMPLEADOS</Link>
             <Link to="/estudios" className="nav-item">ESTUDIOS</Link>

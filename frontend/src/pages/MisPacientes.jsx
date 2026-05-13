@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
 
 // ─── Modal de confirmación personalizado ──────────────────────────────────────
@@ -44,6 +45,10 @@ const MisPacientes = ({ usuario }) => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errGuardar, setErrGuardar] = useState('');
+  const [busqueda, setBusqueda] = useState('');
+  const [especieFiltro, setEspecieFiltro] = useState('todas');
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
 
   const [modalCartilla, setModalCartilla] = useState(null);
   const [subiendoCartilla, setSubiendoCartilla] = useState(false);
@@ -302,6 +307,36 @@ const MisPacientes = ({ usuario }) => {
     </>
   );
 
+  const especiesFiltro = useMemo(() => (
+    [...new Set(pacientes.map((p) => p.especie_nombre).filter(Boolean))]
+  ), [pacientes]);
+
+  const pacientesFiltrados = useMemo(() => {
+    const texto = normalizeText(busqueda);
+    return pacientes.filter((p) => {
+      const coincideTexto = !texto || normalizeText([
+        p.nombre,
+        p.dueno,
+        p.especie_nombre,
+        p.raza_nombre,
+        p.edad,
+        p.sexo,
+        p.peso,
+      ].join(' ')).includes(texto);
+      const coincideEspecie = especieFiltro === 'todas' || p.especie_nombre === especieFiltro;
+      return coincideTexto && coincideEspecie;
+    });
+  }, [pacientes, busqueda, especieFiltro]);
+
+  const pacientesPaginados = useMemo(
+    () => getPaginatedItems(pacientesFiltrados, pagina, porPagina),
+    [pacientesFiltrados, pagina, porPagina]
+  );
+
+  useEffect(() => {
+    setPagina(1);
+  }, [busqueda, especieFiltro, porPagina]);
+
   return (
     <div className="page-container">
 
@@ -322,7 +357,9 @@ const MisPacientes = ({ usuario }) => {
           <h1 className="title-boutique">MIS PACIENTES</h1>
           <p className="subtitle-boutique">Pacientes asignados a tu cuenta</p>
         </div>
-        <button className="btn-add-boutique" onClick={() => setMostrarFormulario(true)}>+</button>
+        <button className="btn-add-boutique" onClick={() => setMostrarFormulario(true)}>
+          <span className="plus-icon">+</span> Nuevo paciente
+        </button>
       </header>
 
       {successMsg && (
@@ -403,11 +440,33 @@ const MisPacientes = ({ usuario }) => {
       )}
 
       {/* ── Tabla ── */}
+      <ListingControls
+        search={busqueda}
+        onSearchChange={setBusqueda}
+        searchPlaceholder="Nombre, dueno, especie o raza"
+        totalItems={pacientes.length}
+        filteredItems={pacientesFiltrados.length}
+        page={pagina}
+        pageSize={porPagina}
+        onPageChange={setPagina}
+        onPageSizeChange={setPorPagina}
+      >
+        <div className="listing-filter">
+          <label>Especie</label>
+          <select value={especieFiltro} onChange={(e) => setEspecieFiltro(e.target.value)}>
+            <option value="todas">Todas</option>
+            {especiesFiltro.map((especie) => (
+              <option key={especie} value={especie}>{especie}</option>
+            ))}
+          </select>
+        </div>
+      </ListingControls>
+
       {loading ? (
         <p className="subtitle-boutique">Cargando...</p>
-      ) : pacientes.length === 0 ? (
+      ) : pacientesFiltrados.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
-          <p style={{ fontSize: '1.1rem' }}>No hay pacientes registrados.</p>
+          <p style={{ fontSize: '1.1rem' }}>No hay pacientes que coincidan con los filtros.</p>
         </div>
       ) : (
         <div className="table-responsive">
@@ -418,14 +477,14 @@ const MisPacientes = ({ usuario }) => {
                 <th>DUEÑO</th>
                 <th>ESPECIE / RAZA</th>
                 <th>EDAD</th>
-                <th>SEXO</th>
-                <th>PESO</th>
-                <th>CARTILLA</th>
+                <th className="responsive-hide-mobile">SEXO</th>
+                <th className="responsive-hide-mobile">PESO</th>
+                <th className="responsive-hide-mobile">CARTILLA</th>
                 <th style={{ textAlign: 'center' }}>ACCIONES</th>
               </tr>
             </thead>
             <tbody>
-              {pacientes.map(p => (
+              {pacientesPaginados.map(p => (
                 <tr key={p.id_paciente}>
                   <td className="name-cell">{p.nombre}</td>
                   <td style={{ fontSize: '0.85rem' }}>{p.dueno ?? '—'}</td>
@@ -433,7 +492,7 @@ const MisPacientes = ({ usuario }) => {
                     {p.especie_nombre ?? '—'} / {p.raza_nombre ?? '—'}
                   </td>
                   <td>{p.edad} años</td>
-                  <td>{p.sexo === 'M' ? 'Macho' : 'Hembra'}</td>
+                  <td className="responsive-hide-mobile">{p.sexo === 'M' ? 'Macho' : 'Hembra'}</td>
                   <td>{p.peso ? `${p.peso} kg` : '—'}</td>
                   <td>
                     {p.cartilla_pdf ? (
@@ -469,8 +528,8 @@ const MisPacientes = ({ usuario }) => {
 };
 
 const styles = {
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal: { background: '#fff', borderRadius: '12px', padding: '32px', width: '90%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, padding: '24px 14px', overflowY: 'auto' },
+  modal: { background: '#fff', borderRadius: '12px', padding: '32px', width: '90%', maxWidth: '680px', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
   modalTitle: { fontSize: '1.1rem', fontWeight: '700', letterSpacing: '2px', color: '#1e3a5f', marginBottom: '24px' },
   grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
   field: { display: 'flex', flexDirection: 'column', gap: '6px' },

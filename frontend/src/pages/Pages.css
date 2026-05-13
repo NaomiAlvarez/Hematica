@@ -37,6 +37,7 @@
 .table-responsive {
     width: 100%;
     margin-top: 20px;
+    overflow-x: auto;
 }
 
 .boutique-table {
@@ -73,6 +74,7 @@
     color: #334155;
     vertical-align: middle;
     border: none;
+    max-width: 280px;
 }
 
 /* Bordes redondeados para las filas */
@@ -300,4 +302,347 @@
   margin-bottom: 30px;
   padding-bottom: 15px;
   border-bottom: 1px solid #e2e8f0;
+}
+
+.role-admin-panel {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 22px 24px;
+  margin-bottom: 22px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.role-admin-panel h2 {
+  margin: 4px 0 8px;
+  color: #0f172a;
+  font-size: 1.25rem;
+}
+
+.role-admin-panel p {
+  max-width: 760px;
+  margin: 0;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.role-admin-kicker {
+  color: #2563eb;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.role-admin-stats {
+  min-width: 150px;
+  text-align: right;
+}
+
+.role-admin-stats strong {
+  display: block;
+  color: #0f172a;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.role-admin-stats span {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.users-toolbar {
+  margin-bottom: 18px;
+}
+
+.users-toolbar input {
+  width: min(520px, 100%);
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  outline: none;
+}
+
+.users-toolbar input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.notice {
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+}
+
+.notice.success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.notice.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.users-role-table .actions-cell {
+  justify-content: center;
+}
+
+.user-name-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.user-name-stack strong {
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.user-name-stack span {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.role-select {
+  width: 100%;
+  min-width: 170px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #0f172a;
+  padding: 9px 10px;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.role-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.role-badge {
+  border: 1px solid transparent;
+}
+
+.role-admin {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.role-vet {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.role-recepcion {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+.role-cliente {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.btn-table-action:disabled,
+.btn-add-main:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-add-boutique,
+.btn-add-main,
+.btn-table-action,
+.btn-action {
+  white-space: nowrap;
+}
+
+.btn-add-boutique .plus-icon,
+.btn-add-main .plus-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.cell-muted {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.cell-truncate {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listing-controls {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.listing-filter-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) repeat(auto-fit, minmax(170px, max-content));
+  gap: 12px;
+  align-items: end;
+}
+
+.listing-search,
+.listing-filter,
+.listing-page-size {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.listing-search label,
+.listing-filter label,
+.listing-page-size label {
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.listing-search input,
+.listing-filter select,
+.listing-page-size select {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #0f172a;
+  font-size: 0.9rem;
+  min-height: 40px;
+  outline: none;
+  padding: 9px 12px;
+}
+
+.listing-search input:focus,
+.listing-filter select:focus,
+.listing-page-size select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.listing-summary-row {
+  align-items: center;
+  border-top: 1px solid #f1f5f9;
+  color: #64748b;
+  display: flex;
+  font-size: 0.84rem;
+  font-weight: 700;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.pagination-controls {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.pagination-controls button {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #0f172a;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 8px 12px;
+  text-transform: uppercase;
+}
+
+.pagination-controls button:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.responsive-detail-list {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .page-container {
+    padding: 24px 14px;
+  }
+
+  .page-header-boutique {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .title-boutique {
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+  }
+
+  .listing-filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .listing-summary-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pagination-controls {
+    justify-content: space-between;
+  }
+
+  .responsive-hide-mobile {
+    display: none;
+  }
+
+  .responsive-detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .responsive-detail-list span {
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+
+  .role-admin-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .role-admin-stats {
+    text-align: left;
+  }
 }

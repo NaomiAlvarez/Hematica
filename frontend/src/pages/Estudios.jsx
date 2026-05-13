@@ -1,5 +1,6 @@
 // Estudios.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
 
 const Estudios = ({ userRole }) => {
@@ -10,6 +11,9 @@ const Estudios = ({ userRole }) => {
   const [form, setForm] = useState({ nombre: '', precio: '' });
   const [errForm, setErrForm] = useState({});
   const [guardando, setGuardando] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
 
   const isAdmin = userRole === 'admin';
 
@@ -114,6 +118,24 @@ const Estudios = ({ userRole }) => {
     } catch { alert('Error al conectar con el servidor'); }
   };
 
+  const estudiosFiltrados = useMemo(() => {
+    const texto = normalizeText(busqueda);
+    if (!texto) return estudios;
+
+    return estudios.filter((estudio) => normalizeText(
+      [estudio.id_catalogo, estudio.nombre, estudio.precio, 'disponible'].join(' ')
+    ).includes(texto));
+  }, [estudios, busqueda]);
+
+  const estudiosPaginados = useMemo(
+    () => getPaginatedItems(estudiosFiltrados, pagina, porPagina),
+    [estudiosFiltrados, pagina, porPagina]
+  );
+
+  useEffect(() => {
+    setPagina(1);
+  }, [busqueda, porPagina]);
+
   return (
     <div className="page-container">
       <header className="page-header-boutique">
@@ -128,7 +150,7 @@ const Estudios = ({ userRole }) => {
             setForm({ nombre: '', precio: '' });
             setErrForm({});
           }}>
-            <span>+</span>
+            <span className="plus-icon">+</span> Nuevo estudio
           </button>
         )}
       </header>
@@ -189,8 +211,22 @@ const Estudios = ({ userRole }) => {
         </div>
       )}
 
+      <ListingControls
+        search={busqueda}
+        onSearchChange={setBusqueda}
+        searchPlaceholder="Nombre, codigo o precio"
+        totalItems={estudios.length}
+        filteredItems={estudiosFiltrados.length}
+        page={pagina}
+        pageSize={porPagina}
+        onPageChange={setPagina}
+        onPageSizeChange={setPorPagina}
+      />
+
       {loading ? (
         <p className="subtitle-boutique">Cargando...</p>
+      ) : estudiosFiltrados.length === 0 ? (
+        <p className="subtitle-boutique">No hay estudios que coincidan con la busqueda.</p>
       ) : (
         <div className="table-responsive">
           <table className="boutique-table">
@@ -198,18 +234,24 @@ const Estudios = ({ userRole }) => {
               <tr>
                 <th>CÓDIGO</th>
                 <th>NOMBRE DEL ESTUDIO</th>
-                <th>PRECIO UNITARIO</th>
-                <th>ESTADO</th>
+                <th className="responsive-hide-mobile">PRECIO UNITARIO</th>
+                <th className="responsive-hide-mobile">ESTADO</th>
                 {isAdmin && <th style={{ textAlign: 'center' }}>ACCIONES</th>}
               </tr>
             </thead>
             <tbody>
-              {estudios.map((est) => (
+              {estudiosPaginados.map((est) => (
                 <tr key={est.id_catalogo}>
                   <td className="id-cell">#{est.id_catalogo.toString().padStart(3, '0')}</td>
-                  <td className="name-cell">{est.nombre}</td> 
-                  <td className="price-cell">${est.precio} MXN</td>
-                  <td>
+                  <td className="name-cell">
+                    {est.nombre}
+                    <div className="responsive-detail-list">
+                      <span>${est.precio} MXN</span>
+                      <span>Disponible</span>
+                    </div>
+                  </td>
+                  <td className="price-cell responsive-hide-mobile">${est.precio} MXN</td>
+                  <td className="responsive-hide-mobile">
                     <span className="status-badge status-disponible">DISPONIBLE</span>
                   </td>
                   {isAdmin && (

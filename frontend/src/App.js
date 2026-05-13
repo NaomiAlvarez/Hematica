@@ -9,9 +9,11 @@ import Empleados from './pages/Empleados';
 import Estudios from './pages/Estudios';
 import Solicitudes from './pages/Solicitudes';
 import ResultadoEstudio from './pages/ResultadoEstudio';
+import Dashboard from './pages/Dashboard';
 import MisMascotas from './pages/MisMascotas';
 import MisPacientes from './pages/MisPacientes';
 import EditarCuenta from './pages/EditarCuenta';
+import Usuarios from './pages/Usuarios';
 
 import './pages/Pages.css';
 
@@ -51,6 +53,8 @@ function App() {
           <Route path="/" element={isLogged ? <Home userRole={userRole} usuario={usuario} /> : <Navigate to="/login" />} />
 
           {/* Solo admin */}
+          <Route path="/dashboard" element={isLogged && isAdmin ? <Dashboard /> : <Navigate to="/" />} />
+          <Route path="/usuarios" element={isLogged && isAdmin ? <Usuarios /> : <Navigate to="/" />} />
           <Route path="/pacientes" element={isLogged && isAdmin ? <Pacientes /> : <Navigate to="/" />} />
           <Route path="/empleados" element={isLogged && isAdmin ? <Empleados /> : <Navigate to="/" />} />
 

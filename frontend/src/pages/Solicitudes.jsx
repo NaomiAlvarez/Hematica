@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
 
 const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
@@ -14,6 +15,10 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   const [errForm, setErrForm] = useState({});
   const [errEstado, setErrEstado] = useState('');
   const [procesando, setProcesando] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
+  const [estadoFiltro, setEstadoFiltro] = useState('todos');
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
 
   const [modalFinalizar, setModalFinalizar] = useState(null);
   const [formResultado, setFormResultado] = useState({ id_vet: '', fecha_muestra: '', observaciones: '', reporte_clinico: '' });
@@ -432,6 +437,36 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
 
   // ── RENDER ───────────────────────────────────────────────────────────────
 
+  const solicitudesFiltradas = useMemo(() => {
+    const texto = normalizeText(busqueda);
+
+    return solicitudes.filter((sol) => {
+      const estudiosDeSol = solicitudEstudios
+        .filter((se) => se.id_solicitud === sol.id_solicitud)
+        .map((se) => se.estudio_nombre)
+        .join(' ');
+      const coincideTexto = !texto || normalizeText([
+        sol.id_solicitud,
+        sol.paciente_nombre,
+        sol.dueno,
+        sol.estado,
+        sol.notas_cliente,
+        estudiosDeSol,
+      ].join(' ')).includes(texto);
+      const coincideEstado = estadoFiltro === 'todos' || sol.estado === estadoFiltro;
+      return coincideTexto && coincideEstado;
+    });
+  }, [solicitudes, solicitudEstudios, busqueda, estadoFiltro]);
+
+  const solicitudesPaginadas = useMemo(
+    () => getPaginatedItems(solicitudesFiltradas, pagina, porPagina),
+    [solicitudesFiltradas, pagina, porPagina]
+  );
+
+  useEffect(() => {
+    setPagina(1);
+  }, [busqueda, estadoFiltro, porPagina]);
+
   return (
     <div className="page-container">
    <header className="page-header-boutique">
@@ -448,7 +483,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
       className="btn-add-boutique" 
       onClick={() => { setMostrarForm(!mostrarForm); setErrForm({}); }}
     >
-      +
+      <span className="plus-icon">+</span> Nueva solicitud
     </button>
   )}
 </header>
@@ -712,12 +747,36 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
       )}
 
       {/* ── Tabla ── */}
+      <ListingControls
+        search={busqueda}
+        onSearchChange={setBusqueda}
+        searchPlaceholder="Folio, paciente, dueno, estudio o estado"
+        totalItems={solicitudes.length}
+        filteredItems={solicitudesFiltradas.length}
+        page={pagina}
+        pageSize={porPagina}
+        onPageChange={setPagina}
+        onPageSizeChange={setPorPagina}
+      >
+        <div className="listing-filter">
+          <label>Estado</label>
+          <select value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)}>
+            <option value="todos">Todos</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="muestra_recibida">Muestra recibida</option>
+            <option value="en_proceso">En proceso</option>
+            <option value="finalizado">Finalizado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+      </ListingControls>
+
       {loading ? (
         <p className="subtitle-boutique">Cargando...</p>
       ) : error ? (
         <p style={{ color: '#ef4444' }}>{error}</p>
-      ) : solicitudes.length === 0 ? (
-        <p className="subtitle-boutique">No hay solicitudes registradas.</p>
+      ) : solicitudesFiltradas.length === 0 ? (
+        <p className="subtitle-boutique">No hay solicitudes que coincidan con los filtros.</p>
       ) : (
         <div className="table-responsive">
           {errEstado && <p style={{ color: '#ef4444', marginBottom: '12px', fontSize: '0.85rem' }}>{errEstado}</p>}
@@ -735,7 +794,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
               </tr>
             </thead>
             <tbody>
-              {solicitudes.map((sol) => {
+              {solicitudesPaginadas.map((sol) => {
                 const enProceso = procesando === sol.id_solicitud;
                 const terminada = sol.estado === 'cancelado' || sol.estado === 'finalizado';
                 const estudiosDeSol = solicitudEstudios.filter(se => se.id_solicitud === sol.id_solicitud);
@@ -873,8 +932,8 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
 };
 
 const styles = {
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal: { background: '#fff', borderRadius: '12px', padding: '32px', width: '90%', maxWidth: '660px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, padding: '24px 14px', overflowY: 'auto' },
+  modal: { background: '#fff', borderRadius: '12px', padding: '32px', width: '90%', maxWidth: '660px', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
   modalTitle: { fontSize: '1.1rem', fontWeight: '700', letterSpacing: '2px', color: '#1e3a5f', marginBottom: '8px' },
   grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
   field: { display: 'flex', flexDirection: 'column', gap: '6px' },

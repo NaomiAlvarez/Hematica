@@ -103,10 +103,10 @@ const Login = ({ onLogin }) => {
         localStorage.setItem('userData', JSON.stringify(data.usuario));
 
         // ── CORRECCIÓN: comparar por descripción, no por ID numérico ──
-        const descripcion = data.usuario?.tipo_usuario?.descripcion || '';
+        const descripcion = (data.usuario?.tipo_usuario?.descripcion || '').toLowerCase();
         let rol = 'usuario';
-        if (descripcion === 'Administrador') rol = 'admin';
-        else if (descripcion === 'Veterinario') rol = 'veterinario';
+        if (descripcion === 'administrador' || descripcion === 'admin') rol = 'admin';
+        else if (descripcion === 'veterinario') rol = 'veterinario';
 
         onLogin(rol, data.usuario);
       }

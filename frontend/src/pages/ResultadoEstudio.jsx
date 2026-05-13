@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
 
 /* ─────────────────────────────────────────────
@@ -492,6 +493,10 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
   const [error,             setError]             = useState(null);
   const [subiendoPdf,       setSubiendoPdf]       = useState(null);
   const [formularioAbierto, setFormularioAbierto] = useState(null);
+  const [busqueda,          setBusqueda]          = useState('');
+  const [reporteFiltro,     setReporteFiltro]     = useState('todos');
+  const [pagina,            setPagina]            = useState(1);
+  const [porPagina,         setPorPagina]         = useState(10);
 
   const cargarResultados = useCallback(async () => {
     try {
@@ -547,6 +552,36 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
     } catch { alert('Error al conectar con el servidor'); }
   };
 
+  const resultadosFiltrados = useMemo(() => {
+    const texto = normalizeText(busqueda);
+    return resultados.filter((resultado) => {
+      const tienePdf = Boolean(resultado.archivo_pdf);
+      const tieneFormulario = Boolean(parsearReporte(resultado.reporte_clinico));
+      const coincideTexto = !texto || normalizeText([
+        resultado.id_solicitud,
+        resultado.paciente_nombre,
+        resultado.veterinario_nombre,
+        resultado.observaciones,
+        resultado.reporte_clinico,
+      ].join(' ')).includes(texto);
+      const coincideReporte =
+        reporteFiltro === 'todos' ||
+        (reporteFiltro === 'con_pdf' && tienePdf) ||
+        (reporteFiltro === 'sin_pdf' && !tienePdf) ||
+        (reporteFiltro === 'con_formulario' && tieneFormulario);
+      return coincideTexto && coincideReporte;
+    });
+  }, [resultados, busqueda, reporteFiltro]);
+
+  const resultadosPaginados = useMemo(
+    () => getPaginatedItems(resultadosFiltrados, pagina, porPagina),
+    [resultadosFiltrados, pagina, porPagina]
+  );
+
+  useEffect(() => {
+    setPagina(1);
+  }, [busqueda, reporteFiltro, porPagina]);
+
   const resultadoActivo = resultados.find(r => r.id_resultado === formularioAbierto);
 
   return (
@@ -575,11 +610,33 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
         </div>
       </header>
 
+      <ListingControls
+        search={busqueda}
+        onSearchChange={setBusqueda}
+        searchPlaceholder="Folio, paciente, veterinario u observaciones"
+        totalItems={resultados.length}
+        filteredItems={resultadosFiltrados.length}
+        page={pagina}
+        pageSize={porPagina}
+        onPageChange={setPagina}
+        onPageSizeChange={setPorPagina}
+      >
+        <div className="listing-filter">
+          <label>Reporte</label>
+          <select value={reporteFiltro} onChange={(e) => setReporteFiltro(e.target.value)}>
+            <option value="todos">Todos</option>
+            <option value="con_pdf">Con PDF</option>
+            <option value="sin_pdf">Sin PDF</option>
+            <option value="con_formulario">Formulario llenado</option>
+          </select>
+        </div>
+      </ListingControls>
+
       {loading ? (
         <p className="subtitle-boutique">Cargando...</p>
       ) : error ? (
         <p style={{ color: '#ef4444' }}>{error}</p>
-      ) : resultados.length === 0 ? (
+      ) : resultadosFiltrados.length === 0 ? (
         <p className="subtitle-boutique">No hay reportes clínicos registrados.</p>
       ) : (
         <div className="table-responsive">
@@ -591,7 +648,7 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
               </tr>
             </thead>
             <tbody>
-              {resultados.map((res) => {
+              {resultadosPaginados.map((res) => {
                 const reporteJson = parsearReporte(res.reporte_clinico);
                 return (
                   <tr key={res.id_resultado}>
@@ -676,7 +733,7 @@ export default ResultadoEstudio;
 ───────────────────────────────────────────────*/
 const st = {
   overlay:      { position: 'fixed', inset: 0, zIndex: 1000, backgroundColor: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' },
-  modal:        { backgroundColor: '#fff', borderRadius: 16, width: '100%', maxWidth: 820, padding: '32px 36px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', position: 'relative', marginBottom: 24 },
+  modal:        { backgroundColor: '#fff', borderRadius: 16, width: '100%', maxWidth: 820, maxHeight: 'calc(100vh - 48px)', overflowY: 'auto', padding: '32px 36px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', position: 'relative', marginBottom: 24 },
   modalHeader:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 12, borderBottom: '2px solid #e2e8f0' },
   brand:        { fontFamily: "'Montserrat',sans-serif", fontWeight: 800, fontSize: '1.1rem', color: '#c0392b', letterSpacing: 3 },
   brandSub:     { fontFamily: "'Montserrat',sans-serif", fontWeight: 500, fontSize: '0.75rem', color: '#64748b', letterSpacing: 1 },

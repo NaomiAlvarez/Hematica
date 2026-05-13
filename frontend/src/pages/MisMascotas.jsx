@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
 
 const MisMascotas = ({ usuario, isAdmin }) => {
@@ -13,6 +14,10 @@ const MisMascotas = ({ usuario, isAdmin }) => {
   const [errForm, setErrForm] = useState('');
   const [clientes, setClientes] = useState([]);
   const [miClienteId, setMiClienteId] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
+  const [especieFiltro, setEspecieFiltro] = useState('todas');
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
 
   // Modal historial
   const [modalHistorial, setModalHistorial] = useState(null);
@@ -140,6 +145,30 @@ const MisMascotas = ({ usuario, isAdmin }) => {
     } catch { alert('Error al conectar con el servidor'); }
   };
 
+  const especiesFiltro = useMemo(() => (
+    [...new Set(mascotas.map((m) => m.especie_nombre).filter(Boolean))]
+  ), [mascotas]);
+
+  const mascotasFiltradas = useMemo(() => {
+    const texto = normalizeText(busqueda);
+    return mascotas.filter((m) => {
+      const coincideTexto = !texto || normalizeText(
+        [m.nombre, m.especie_nombre, m.raza_nombre, m.dueno, m.edad].join(' ')
+      ).includes(texto);
+      const coincideEspecie = especieFiltro === 'todas' || m.especie_nombre === especieFiltro;
+      return coincideTexto && coincideEspecie;
+    });
+  }, [mascotas, busqueda, especieFiltro]);
+
+  const mascotasPaginadas = useMemo(
+    () => getPaginatedItems(mascotasFiltradas, pagina, porPagina),
+    [mascotasFiltradas, pagina, porPagina]
+  );
+
+  useEffect(() => {
+    setPagina(1);
+  }, [busqueda, especieFiltro, porPagina]);
+
   return (
     <div className="page-container">
       <header className="page-header-boutique">
@@ -148,7 +177,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
           <p className="subtitle-boutique">{isAdmin ? 'Gestión de todos los pacientes' : 'Gestión de tus ejemplares'}</p>
         </div>
         <button className="btn-add-boutique" onClick={() => { setMostrarForm(!mostrarForm); setErrForm(''); }}>
-          <span>+</span>
+          <span className="plus-icon">+</span> Nueva mascota
         </button>
       </header>
 
@@ -315,12 +344,34 @@ const MisMascotas = ({ usuario, isAdmin }) => {
       )}
 
       {/* ── Tabla ── */}
+      <ListingControls
+        search={busqueda}
+        onSearchChange={setBusqueda}
+        searchPlaceholder="Nombre, raza, dueno o edad"
+        totalItems={mascotas.length}
+        filteredItems={mascotasFiltradas.length}
+        page={pagina}
+        pageSize={porPagina}
+        onPageChange={setPagina}
+        onPageSizeChange={setPorPagina}
+      >
+        <div className="listing-filter">
+          <label>Especie</label>
+          <select value={especieFiltro} onChange={(e) => setEspecieFiltro(e.target.value)}>
+            <option value="todas">Todas</option>
+            {especiesFiltro.map((especie) => (
+              <option key={especie} value={especie}>{especie}</option>
+            ))}
+          </select>
+        </div>
+      </ListingControls>
+
       {loading ? (
         <p className="subtitle-boutique">Cargando...</p>
       ) : error ? (
         <p style={{ color: '#ef4444' }}>{error}</p>
-      ) : mascotas.length === 0 ? (
-        <p className="subtitle-boutique">No hay mascotas registradas.</p>
+      ) : mascotasFiltradas.length === 0 ? (
+        <p className="subtitle-boutique">No hay mascotas que coincidan con los filtros.</p>
       ) : (
         <div className="table-responsive">
           <table className="boutique-table">
@@ -334,7 +385,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
               </tr>
             </thead>
             <tbody>
-              {mascotas.map((m) => (
+              {mascotasPaginadas.map((m) => (
                 <tr key={m.id_paciente}>
                   <td className="name-cell">{m.nombre}</td>
                   <td>{m.especie_nombre} - {m.raza_nombre}</td>
@@ -357,8 +408,8 @@ const MisMascotas = ({ usuario, isAdmin }) => {
 };
 
 const styles = {
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal: { background: '#fff', borderRadius: '12px', padding: '32px', width: '90%', maxWidth: '620px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, padding: '24px 14px', overflowY: 'auto' },
+  modal: { background: '#fff', borderRadius: '12px', padding: '32px', width: '90%', maxWidth: '620px', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
   modalTitle: { fontSize: '1.1rem', fontWeight: '700', letterSpacing: '2px', color: '#1e3a5f', marginBottom: '8px' },
   modalBtns: { display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' },
   btnCancelar: { padding: '10px 24px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontWeight: '700', fontSize: '12px', letterSpacing: '1px' },

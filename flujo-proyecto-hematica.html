@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flujo del Proyecto Hematica</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #526176;
+      --line: #cdd7e6;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --frontend: #e8f2ff;
+      --backend: #eaf8ef;
+      --db: #fff3d8;
+      --file: #f2ecff;
+      --accent: #1e5ea8;
+      --danger: #ffe8e8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+
+    header {
+      background: #10213f;
+      color: white;
+      padding: 34px 44px;
+      border-bottom: 8px solid #2f80ed;
+    }
+
+    header h1 {
+      margin: 0 0 10px;
+      font-size: 42px;
+      letter-spacing: 0.02em;
+    }
+
+    header p {
+      margin: 0;
+      max-width: 1100px;
+      color: #d9e7ff;
+      font-size: 21px;
+    }
+
+    main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 34px;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 28px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      color: #10213f;
+      font-size: 30px;
+      border-bottom: 3px solid #dbe6f5;
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      margin: 22px 0 12px;
+      color: #263a5c;
+      font-size: 24px;
+    }
+
+    .note {
+      background: #edf6ff;
+      border-left: 6px solid var(--accent);
+      padding: 16px 18px;
+      border-radius: 10px;
+      margin-bottom: 22px;
+      color: #243b5f;
+      font-size: 19px;
+    }
+
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin: 18px 0 8px;
+    }
+
+    .flow.vertical {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr);
+      gap: 12px;
+      max-width: 920px;
+    }
+
+    .box {
+      border: 2px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 20px;
+      min-width: 230px;
+      flex: 1;
+      background: white;
+      font-size: 19px;
+    }
+
+    .box strong {
+      display: block;
+      font-size: 21px;
+      margin-bottom: 5px;
+      color: #111827;
+    }
+
+    .box small {
+      display: block;
+      color: var(--muted);
+      font-size: 16px;
+      margin-top: 4px;
+    }
+
+    .frontend {
+      background: var(--frontend);
+      border-color: #9cc7fb;
+    }
+
+    .backend {
+      background: var(--backend);
+      border-color: #94d3a2;
+    }
+
+    .database {
+      background: var(--db);
+      border-color: #f1c86a;
+    }
+
+    .file {
+      background: var(--file);
+      border-color: #c7b3ff;
+    }
+
+    .danger {
+      background: var(--danger);
+      border-color: #ff9c9c;
+    }
+
+    .arrow {
+      align-self: center;
+      color: #35506f;
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .flow.vertical .arrow {
+      text-align: center;
+      transform: rotate(90deg);
+      font-size: 30px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      min-width: 900px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #e4ebf5;
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 18px;
+    }
+
+    th {
+      background: #14284a;
+      color: white;
+      font-size: 17px;
+      letter-spacing: 0.03em;
+    }
+
+    code {
+      background: #edf1f7;
+      border: 1px solid #d7dfeb;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 17px;
+    }
+
+    .path {
+      font-family: Consolas, "Courier New", monospace;
+      color: #253653;
+      word-break: break-word;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 15px;
+      margin-right: 6px;
+      background: #e8eef8;
+      color: #253653;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 18px;
+    }
+
+    @media print {
+      body {
+        background: white;
+        font-size: 16px;
+      }
+
+      section {
+        break-inside: avoid;
+        box-shadow: none;
+      }
+
+      header {
+        background: white;
+        color: #10213f;
+        border-bottom: 4px solid #10213f;
+      }
+
+      header p {
+        color: #334155;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Flujo del Proyecto Hematica</h1>
+    <p>
+      Mapa visual de como viajan los datos desde React, pasan por Django REST Framework,
+      se validan con serializers, llegan a modelos Django y terminan guardados en MySQL.
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Flujo general de datos</h2>
+      <div class="note">
+        Esta es la idea principal: el usuario escribe datos en una pantalla, React los manda con
+        <code>fetch()</code>, Django los recibe, valida y guarda en MySQL.
+      </div>
+      <div class="flow">
+        <div class="box frontend">
+          <strong>Usuario</strong>
+          Usa formularios, botones y tablas en el navegador.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>Frontend React</strong>
+          <span class="path">frontend/src</span>
+          <small>Pantallas: Login, Mascotas, Solicitudes, Resultados.</small>
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>fetch()</strong>
+          Manda JSON o FormData a la API.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>Backend Django</strong>
+          <span class="path">backend-django</span>
+          <small>Recibe la peticion HTTP.</small>
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>Serializer + Modelo</strong>
+          Valida, convierte y prepara datos.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>MySQL</strong>
+          Base: <code>hematica_db</code>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Carpetas principales</h2>
+      <div class="grid">
+        <div class="box frontend">
+          <strong>frontend/src/App.js</strong>
+          Controla rutas, login activo y rol del usuario.
+        </div>
+        <div class="box frontend">
+          <strong>frontend/src/pages</strong>
+          Pantallas del sistema: Login, Mascotas, Empleados, Estudios, Solicitudes y Resultados.
+        </div>
+        <div class="box backend">
+          <strong>backend-django/hematica_project</strong>
+          Configuracion global de Django, base de datos y rutas principales.
+        </div>
+        <div class="box backend">
+          <strong>backend-django/apps</strong>
+          Modulos de backend: usuarios, pacientes, empleados, estudios y solicitudes.
+        </div>
+        <div class="box database">
+          <strong>docker-compose.yml</strong>
+          Levanta MySQL 8 y Django. MySQL guarda la base <code>hematica_db</code>.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. Login</h2>
+      <div class="flow vertical">
+        <div class="box frontend">
+          <strong>Login.jsx</strong>
+          El usuario escribe correo y contraseña.
+          <small><span class="path">frontend/src/pages/Login.jsx</span></small>
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>POST /api/v1/auth/login/</strong>
+          React manda correo y password con <code>fetch()</code>.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>usuarios/urls.py</strong>
+          La ruta apunta a <code>LoginView</code>.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>LoginView</strong>
+          Busca al usuario por correo y revisa la contraseña con <code>check_password()</code>.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla usuario</strong>
+          Django consulta correo, password cifrada y tipo de usuario.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>JWT + UsuarioSerializer</strong>
+          Si todo esta correcto, crea token y devuelve datos del usuario.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>localStorage + App.js</strong>
+          Guarda token, detecta rol y muestra rutas segun admin, veterinario o usuario.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>4. Registro de cliente</h2>
+      <div class="flow vertical">
+        <div class="box frontend">
+          <strong>Login.jsx en modo registro</strong>
+          Captura nombre, correo, telefono y contraseña.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>POST /api/v1/auth/register/</strong>
+          Manda <code>id_tipo_usuario: 1</code> para cliente.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>RegisterSerializer</strong>
+          Cifra la contraseña con <code>make_password()</code>.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla usuario</strong>
+          Guarda el usuario nuevo.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla cliente</strong>
+          Si el tipo es cliente, crea automaticamente su perfil de cliente.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. Mascotas / pacientes</h2>
+      <div class="flow vertical">
+        <div class="box frontend">
+          <strong>MisMascotas.jsx o MisPacientes.jsx</strong>
+          El usuario/admin llena datos de la mascota.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>POST /api/v1/pacientes/</strong>
+          Manda nombre, sexo, edad, raza, cliente, peso y anamnesis si aplica.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>PacienteViewSet</strong>
+          Recibe la peticion CRUD.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>PacienteSerializer</strong>
+          Valida y convierte JSON a objeto Django.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla paciente</strong>
+          Guarda la mascota ligada a <code>cliente</code> y <code>raza</code>.
+        </div>
+      </div>
+      <h3>Cartilla PDF</h3>
+      <div class="flow">
+        <div class="box frontend">
+          <strong>FormData</strong>
+          Archivo en campo <code>cartilla_pdf</code>.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>PATCH /pacientes/{id}/subir_cartilla/</strong>
+          Valida PDF y maximo 10 MB.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box file">
+          <strong>media/cartillas/</strong>
+          Guarda el archivo y la ruta en la tabla <code>paciente</code>.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>6. Empleados y veterinarios</h2>
+      <div class="flow vertical">
+        <div class="box frontend">
+          <strong>Empleados.jsx</strong>
+          Admin crea personal del laboratorio.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>1) POST /api/v1/auth/register/</strong>
+          Primero crea el usuario base.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla usuario</strong>
+          Guarda nombre, correo, telefono, password cifrada y tipo.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>2) POST /api/v1/empleados/</strong>
+          Crea el empleado ligado al usuario.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla empleado</strong>
+          Guarda clinica, telefono, direccion y tipo de empleado.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>3) POST /api/v1/veterinarios/</strong>
+          Solo si el empleado es veterinario.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla veterinario</strong>
+          Guarda CURP y cedula.
+        </div>
+      </div>
+      <h3>Asignacion de clientes a veterinarios</h3>
+      <div class="flow">
+        <div class="box frontend">
+          <strong>Empleados.jsx</strong>
+          Admin asigna cliente.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>/veterinarios/{id}/asignar_cliente/</strong>
+          Crea la relacion.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla veterinario_cliente</strong>
+          Relacion muchos a muchos.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>7. Catalogo de estudios</h2>
+      <div class="flow vertical">
+        <div class="box frontend">
+          <strong>Estudios.jsx</strong>
+          Admin crea o edita estudios y precios.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>POST / PUT / DELETE /api/v1/estudios/</strong>
+          Manda nombre y precio.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>CatalogoEstudioViewSet</strong>
+          CRUD generado por Django REST Framework.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>CatalogoEstudioSerializer</strong>
+          Valida campos.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla catalogo_estudio</strong>
+          Guarda estudio y precio.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>8. Solicitudes</h2>
+      <div class="flow vertical">
+        <div class="box frontend">
+          <strong>Solicitudes.jsx</strong>
+          Cliente selecciona mascota y estudios.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>POST /api/v1/solicitudes/</strong>
+          Crea solicitud con estado <code>pendiente</code>.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla solicitud</strong>
+          Guarda paciente, estado, fecha y notas.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>POST /api/v1/solicitud-estudios/</strong>
+          Se ejecuta una vez por cada estudio elegido.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla solicitud_estudio</strong>
+          Une solicitud con catalogo de estudios.
+        </div>
+      </div>
+
+      <h3>Cambio de estado</h3>
+      <div class="flow">
+        <div class="box frontend">
+          <strong>Boton de admin/veterinario</strong>
+          Recibir, procesar, cancelar o finalizar.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>PATCH /solicitudes/{id}/cambiar_estado/</strong>
+          Valida estado y guarda motivo si se cancela.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla solicitud</strong>
+          Actualiza <code>estado</code> y <code>motivo_cancelacion</code>.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>9. Resultados y PDF</h2>
+      <div class="flow vertical">
+        <div class="box frontend">
+          <strong>Solicitudes.jsx</strong>
+          Admin/veterinario finaliza y crea resultado.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>POST /api/v1/resultados/</strong>
+          Crea resultado con veterinario, fecha, observaciones y reporte.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla resultado_estudio</strong>
+          Guarda resultado clinico.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>perform_create()</strong>
+          Cambia solicitud a finalizado y crea historial clinico.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla historial_clinico</strong>
+          Guarda expediente relacionado al paciente.
+        </div>
+      </div>
+
+      <h3>Formulario de bioquimica</h3>
+      <div class="flow">
+        <div class="box frontend">
+          <strong>ResultadoEstudio.jsx</strong>
+          Admin llena analitos e interpretacion.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>PATCH /resultados/{id}/</strong>
+          Actualiza <code>reporte_clinico</code> como JSON.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box database">
+          <strong>tabla resultado_estudio</strong>
+          Guarda observaciones y reporte.
+        </div>
+      </div>
+
+      <h3>Generacion y subida de PDF</h3>
+      <div class="flow">
+        <div class="box frontend">
+          <strong>html2canvas</strong>
+          Captura el formulario visual.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>jsPDF</strong>
+          Genera PDF comprimido.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box frontend">
+          <strong>FormData</strong>
+          Campo <code>archivo_pdf</code>.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box backend">
+          <strong>PATCH /resultados/{id}/subir_pdf/</strong>
+          Valida que sea PDF y menor a 10 MB.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box file">
+          <strong>media/resultados/</strong>
+          Guarda archivo y ruta en <code>archivo_pdf</code>.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>10. Tablas de la base de datos</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tabla</th>
+              <th>Que guarda</th>
+              <th>Archivo modelo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>tipo_usuario</code></td>
+              <td>Roles: cliente, veterinario, admin.</td>
+              <td class="path">apps/usuarios/models.py</td>
+            </tr>
+            <tr>
+              <td><code>usuario</code></td>
+              <td>Nombre, correo, password cifrada, telefono y tipo.</td>
+              <td class="path">apps/usuarios/models.py</td>
+            </tr>
+            <tr>
+              <td><code>cliente</code></td>
+              <td>Perfil de tutor ligado a usuario.</td>
+              <td class="path">apps/pacientes/models.py</td>
+            </tr>
+            <tr>
+              <td><code>especie</code> / <code>raza</code></td>
+              <td>Catalogos para clasificar mascotas.</td>
+              <td class="path">apps/pacientes/models.py</td>
+            </tr>
+            <tr>
+              <td><code>paciente</code></td>
+              <td>Mascotas, edad, peso, raza, dueño, cartilla.</td>
+              <td class="path">apps/pacientes/models.py</td>
+            </tr>
+            <tr>
+              <td><code>empleado</code> / <code>veterinario</code></td>
+              <td>Personal, clinica, telefono, cedula y CURP.</td>
+              <td class="path">apps/empleados/models.py</td>
+            </tr>
+            <tr>
+              <td><code>veterinario_cliente</code></td>
+              <td>Clientes asignados a cada veterinario.</td>
+              <td class="path">apps/empleados/models.py</td>
+            </tr>
+            <tr>
+              <td><code>catalogo_estudio</code></td>
+              <td>Estudios disponibles y precio.</td>
+              <td class="path">apps/estudios/models.py</td>
+            </tr>
+            <tr>
+              <td><code>solicitud</code></td>
+              <td>Solicitud de estudio de un paciente.</td>
+              <td class="path">apps/solicitudes/models.py</td>
+            </tr>
+            <tr>
+              <td><code>solicitud_estudio</code></td>
+              <td>Relacion entre solicitud y estudios elegidos.</td>
+              <td class="path">apps/solicitudes/models.py</td>
+            </tr>
+            <tr>
+              <td><code>resultado_estudio</code></td>
+              <td>Reporte clinico, observaciones, veterinario y PDF.</td>
+              <td class="path">apps/solicitudes/models.py</td>
+            </tr>
+            <tr>
+              <td><code>historial_clinico</code></td>
+              <td>Expediente generado por paciente.</td>
+              <td class="path">apps/solicitudes/models.py</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>11. Flujo completo resumido</h2>
+      <div class="flow vertical">
+        <div class="box frontend"><strong>1. Cliente se registra</strong>Login.jsx manda datos al backend.</div>
+        <div class="arrow">→</div>
+        <div class="box database"><strong>2. Se crea usuario y cliente</strong>Tablas <code>usuario</code> y <code>cliente</code>.</div>
+        <div class="arrow">→</div>
+        <div class="box frontend"><strong>3. Cliente registra mascota</strong>MisMascotas.jsx manda paciente.</div>
+        <div class="arrow">→</div>
+        <div class="box database"><strong>4. Se guarda paciente</strong>Tabla <code>paciente</code>.</div>
+        <div class="arrow">→</div>
+        <div class="box frontend"><strong>5. Cliente crea solicitud</strong>Selecciona mascota y estudios.</div>
+        <div class="arrow">→</div>
+        <div class="box database"><strong>6. Se guardan solicitud y estudios</strong>Tablas <code>solicitud</code> y <code>solicitud_estudio</code>.</div>
+        <div class="arrow">→</div>
+        <div class="box frontend"><strong>7. Admin/veterinario procesa muestra</strong>Cambia estados y crea resultado.</div>
+        <div class="arrow">→</div>
+        <div class="box database"><strong>8. Se guarda resultado e historial</strong>Tablas <code>resultado_estudio</code> e <code>historial_clinico</code>.</div>
+        <div class="arrow">→</div>
+        <div class="box frontend"><strong>9. Admin llena formulario clinico</strong>Se guarda JSON en <code>reporte_clinico</code>.</div>
+        <div class="arrow">→</div>
+        <div class="box file"><strong>10. Se genera y sube PDF</strong>Archivo en <code>media/resultados/</code>.</div>
+        <div class="arrow">→</div>
+        <div class="box frontend"><strong>11. Cliente descarga resultado</strong>React muestra el link del PDF.</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
