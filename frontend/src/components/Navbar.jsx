@@ -2,12 +2,17 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css';
 
+const API = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+
 const Navbar = ({ userRole, onLogout, usuario }) => {
   const isAdmin = userRole === 'admin';
   const isVeterinario = userRole === 'veterinario';
   const isUsuario = userRole === 'usuario';
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [notificaciones, setNotificaciones] = useState([]);
+  const [notificacionesAbiertas, setNotificacionesAbiertas] = useState(false);
   const menuRef = useRef(null);
+  const notifRef = useRef(null);
 
   // Cerrar el menú si se hace click fuera
   useEffect(() => {
@@ -15,10 +20,53 @@ const Navbar = ({ userRole, onLogout, usuario }) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setMenuAbierto(false);
       }
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotificacionesAbiertas(false);
+      }
     };
     document.addEventListener('mousedown', handleClickFuera);
     return () => document.removeEventListener('mousedown', handleClickFuera);
   }, []);
+
+  useEffect(() => {
+    if (!usuario) return;
+    let activo = true;
+
+    const cargar = async () => {
+      try {
+        const res = await fetch(`${API}/auth/notificaciones/`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (activo) setNotificaciones(data.slice(0, 8));
+      } catch (_) {}
+    };
+
+    cargar();
+    const timer = setInterval(cargar, 60000);
+    return () => {
+      activo = false;
+      clearInterval(timer);
+    };
+  }, [usuario]);
+
+  const marcarLeida = async (notificacion) => {
+    if (notificacion.leida) return;
+    setNotificaciones((actuales) =>
+      actuales.map((item) =>
+        item.id_notificacion === notificacion.id_notificacion
+          ? { ...item, leida: true }
+          : item
+      )
+    );
+    try {
+      await fetch(`${API}/auth/notificaciones/${notificacion.id_notificacion}/leer/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (_) {}
+  };
+
+  const pendientes = notificaciones.filter((item) => !item.leida).length;
 
   return (
     <nav className="navbar">
@@ -58,6 +106,43 @@ const Navbar = ({ userRole, onLogout, usuario }) => {
             <Link to="/solicitudes" className="nav-item">SOLICITUDES</Link>
             <Link to="/resultados" className="nav-item">RESULTADOS</Link>
           </>
+        )}
+
+        {usuario && (
+          <div ref={notifRef} className="notification-menu">
+            <button
+              type="button"
+              className="notification-button"
+              onClick={() => setNotificacionesAbiertas(prev => !prev)}
+              title="Notificaciones"
+            >
+              !
+              {pendientes > 0 && <span>{pendientes}</span>}
+            </button>
+            {notificacionesAbiertas && (
+              <div className="notification-dropdown">
+                <strong>Notificaciones</strong>
+                {notificaciones.length === 0 ? (
+                  <p>Sin novedades.</p>
+                ) : (
+                  notificaciones.map((notificacion) => (
+                    <Link
+                      key={notificacion.id_notificacion}
+                      to={notificacion.url || '/'}
+                      className={notificacion.leida ? 'notification-item read' : 'notification-item'}
+                      onClick={() => {
+                        marcarLeida(notificacion);
+                        setNotificacionesAbiertas(false);
+                      }}
+                    >
+                      <span>{notificacion.titulo}</span>
+                      <small>{notificacion.mensaje}</small>
+                    </Link>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         {/* ── Dropdown usuario ── */}

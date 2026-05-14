@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import './Login.css';
 
+const API = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+
 const Login = ({ onLogin }) => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
 
   const [formData, setFormData] = useState({
     correo: '',
@@ -30,7 +33,7 @@ const Login = ({ onLogin }) => {
       nuevosErrores.correo = "Ingresa un correo electrónico válido";
     }
 
-    if (!formData.password || formData.password.length < 8) {
+    if (!isRecovering && (!formData.password || formData.password.length < 8)) {
       nuevosErrores.password = "La contraseña debe tener al menos 8 caracteres";
     }
 
@@ -58,8 +61,24 @@ const Login = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      if (isRegistering) {
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/auth/register/`, {
+      if (isRecovering) {
+        const res = await fetch(`${API}/auth/password-reset/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo: formData.correo }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          setErrors({ correo: data.error || 'No se pudo enviar la recuperación' });
+          setLoading(false);
+          return;
+        }
+
+        setSuccess(true);
+
+      } else if (isRegistering) {
+        const res = await fetch(`${API}/auth/register/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -82,7 +101,7 @@ const Login = ({ onLogin }) => {
         setSuccess(true);
 
       } else {
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/auth/login/`, {
+        const res = await fetch(`${API}/auth/login/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -100,6 +119,7 @@ const Login = ({ onLogin }) => {
         }
 
         localStorage.setItem('token', data.access);
+        localStorage.setItem('refresh', data.refresh);
         localStorage.setItem('userData', JSON.stringify(data.usuario));
 
         // ── CORRECCIÓN: comparar por descripción, no por ID numérico ──
@@ -129,20 +149,21 @@ const Login = ({ onLogin }) => {
           </div>
         </div>
 
-        <h2>{isRegistering ? 'REGISTRO' : 'BIENVENIDO'}</h2>
-        <p>{isRegistering ? 'Crea tu cuenta' : 'Laboratorio Clínico Hemática'}</p>
+        <h2>{isRecovering ? 'RECUPERAR ACCESO' : isRegistering ? 'REGISTRO' : 'BIENVENIDO'}</h2>
+        <p>{isRecovering ? 'Te enviaremos un enlace por correo' : isRegistering ? 'Crea tu cuenta' : 'Laboratorio Clínico Hemática'}</p>
 
-        {success && isRegistering ? (
+        {success && (isRegistering || isRecovering) ? (
           <div className="success-inline">
-            <div className="success-inline-icon">🐾</div>
-            <h3>¡Registro exitoso!</h3>
-            <p>El laboratorio se pondrá en contacto contigo.</p>
+            <div className="success-inline-icon">*</div>
+            <h3>{isRecovering ? 'Solicitud enviada' : '¡Registro exitoso!'}</h3>
+            <p>{isRecovering ? 'Revisa tu correo para definir una nueva contraseña.' : 'El laboratorio se pondrá en contacto contigo.'}</p>
             <button
               type="button"
               className="btn-login"
               onClick={() => {
                 setSuccess(false);
                 setIsRegistering(false);
+                setIsRecovering(false);
                 setFormData({ correo: '', password: '', nombre: '', num_tel: '' });
                 setErrors({});
               }}
@@ -196,6 +217,7 @@ const Login = ({ onLogin }) => {
               </div>
             )}
 
+            {!isRecovering && (
             <div className="input-group">
               <label>CONTRASEÑA</label>
               <input
@@ -208,24 +230,39 @@ const Login = ({ onLogin }) => {
               />
               {errors.password && <span className="error-message">{errors.password}</span>}
             </div>
+            )}
 
             <button type="submit" className="btn-login" disabled={loading}>
-              {loading ? 'CARGANDO...' : isRegistering ? 'REGISTRAR' : 'INICIAR SESIÓN'}
+              {loading ? 'CARGANDO...' : isRecovering ? 'ENVIAR ENLACE' : isRegistering ? 'REGISTRAR' : 'INICIAR SESIÓN'}
             </button>
 
             <div className="login-footer-links">
-              <p>{isRegistering ? '¿Ya tienes cuenta?' : '¿Cliente nuevo?'}</p>
+              <p>{isRecovering ? '¿Recordaste tu contraseña?' : isRegistering ? '¿Ya tienes cuenta?' : '¿Cliente nuevo?'}</p>
               <button
                 type="button"
                 className="btn-register-link"
                 onClick={() => {
-                  setIsRegistering(!isRegistering);
+                  setIsRegistering(isRegistering || isRecovering ? false : true);
+                  setIsRecovering(false);
                   setErrors({});
                   setFormData({ correo: '', password: '', nombre: '', num_tel: '' });
                 }}
               >
-                {isRegistering ? 'REGRESAR AL LOGIN' : 'CREAR CUENTA'}
+                {isRegistering || isRecovering ? 'REGRESAR AL LOGIN' : 'CREAR CUENTA'}
               </button>
+              {!isRegistering && !isRecovering && (
+                <button
+                  type="button"
+                  className="btn-register-link"
+                  onClick={() => {
+                    setIsRecovering(true);
+                    setErrors({});
+                    setFormData({ correo: formData.correo, password: '', nombre: '', num_tel: '' });
+                  }}
+                >
+                  OLVIDÉ MI CONTRASEÑA
+                </button>
+              )}
             </div>
 
             {loading && (

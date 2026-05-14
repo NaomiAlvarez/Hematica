@@ -108,6 +108,31 @@
     border: 1px solid #bfdbfe;
 }
 
+.status-muestra_recibida {
+    background-color: #cffafe;
+    color: #0e7490;
+    border: 1px solid #67e8f9;
+}
+
+.status-en_proceso {
+    background-color: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+}
+
+.status-resultado_cargado {
+    background-color: #ede9fe;
+    color: #6d28d9;
+    border: 1px solid #c4b5fd;
+}
+
+.status-rechazado,
+.status-cancelado {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
 /* 4. CELDAS ESPECIALES */
 .id-cell {
     color: #3b82f6 !important; /* Azul para el ID */

@@ -225,7 +225,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     try {
       const res = await fetch(`http://localhost:8000/api/v1/solicitudes/${modalRechazar.id_solicitud}/cambiar_estado/`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado: 'cancelado', motivo_cancelacion: motivoCancelacion.trim() })
+        body: JSON.stringify({ estado: 'rechazado', motivo_cancelacion: motivoCancelacion.trim() })
       });
       if (res.ok) {
         setModalRechazar(null); setMotivoCancelacion(''); setErrMotivo(''); cargarSolicitudes();
@@ -765,7 +765,9 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
             <option value="pendiente">Pendiente</option>
             <option value="muestra_recibida">Muestra recibida</option>
             <option value="en_proceso">En proceso</option>
+            <option value="resultado_cargado">Resultado cargado</option>
             <option value="finalizado">Finalizado</option>
+            <option value="rechazado">Rechazado</option>
             <option value="cancelado">Cancelado</option>
           </select>
         </div>
@@ -796,7 +798,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
             <tbody>
               {solicitudesPaginadas.map((sol) => {
                 const enProceso = procesando === sol.id_solicitud;
-                const terminada = sol.estado === 'cancelado' || sol.estado === 'finalizado';
+                const terminada = ['cancelado', 'rechazado', 'finalizado'].includes(sol.estado);
                 const estudiosDeSol = solicitudEstudios.filter(se => se.id_solicitud === sol.id_solicitud);
                 const totalSol = calcularTotal(sol.id_solicitud);
                 return (
@@ -841,12 +843,12 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                     {/* ── ESTADO ── */}
                     <td>
                       {badgeEstado(sol.estado)}
-                      {sol.estado === 'cancelado' && sol.motivo_cancelacion && (
+                      {['cancelado', 'rechazado'].includes(sol.estado) && sol.motivo_cancelacion && (
                         <p style={{ fontSize: '0.75rem', color: '#ef4444', margin: '4px 0 0', fontStyle: 'italic' }}>
                           Motivo: {sol.motivo_cancelacion}
                         </p>
                       )}
-                      {sol.estado === 'cancelado' && isVeterinario && (
+                      {['cancelado', 'rechazado'].includes(sol.estado) && isVeterinario && (
                         <button className="btn-add-boutique"
                           style={{ padding: '4px 10px', fontSize: '10px', backgroundColor: '#f59e0b', marginTop: '6px', display: 'block' }}
                           onClick={() => abrirModalModificar(sol)}>

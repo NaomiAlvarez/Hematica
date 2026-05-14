@@ -25,7 +25,9 @@ const ESTADO_LABELS = {
   pendiente: 'Pendiente',
   muestra_recibida: 'Muestra recibida',
   en_proceso: 'En proceso',
+  resultado_cargado: 'Resultado cargado',
   finalizado: 'Finalizado',
+  rechazado: 'Rechazado',
   cancelado: 'Cancelado',
 };
 
@@ -33,7 +35,9 @@ const ESTADO_COLORS = {
   pendiente: '#2563eb',
   muestra_recibida: '#0891b2',
   en_proceso: '#f59e0b',
+  resultado_cargado: '#7c3aed',
   finalizado: '#16a34a',
+  rechazado: '#be123c',
   cancelado: '#dc2626',
 };
 
@@ -186,7 +190,7 @@ const Dashboard = () => {
       .reduce((total, solicitud) => total + costoSolicitud(solicitud.id_solicitud), 0);
 
     const solicitudesActivas = solicitudes.filter(
-      (solicitud) => !['finalizado', 'cancelado'].includes(solicitud.estado)
+      (solicitud) => !['finalizado', 'cancelado', 'rechazado'].includes(solicitud.estado)
     ).length;
 
     const estudiosSolicitados = solicitudEstudios.reduce((acc, item) => {

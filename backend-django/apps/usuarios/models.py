@@ -4,7 +4,11 @@ Define los tipos de usuario y los usuarios del sistema.
 Los tipos de usuario determinan los permisos y accesos
 que tiene cada persona en la plataforma.
 """
+import secrets
+from datetime import timedelta
+
 from django.db import models
+from django.utils import timezone
 
 
 class TipoUsuario(models.Model):
@@ -63,3 +67,86 @@ class Usuario(models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.correo})"
+
+
+class Auditoria(models.Model):
+    id_auditoria = models.AutoField(primary_key=True)
+    actor = models.ForeignKey(
+        Usuario,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        db_column='id_actor',
+        related_name='acciones_auditoria'
+    )
+    accion = models.CharField(max_length=40)
+    modelo = models.CharField(max_length=80, blank=True)
+    objeto_id = models.CharField(max_length=80, blank=True)
+    descripcion = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'auditoria'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        actor = self.actor.correo if self.actor else 'sistema'
+        return f"{actor} - {self.accion} - {self.modelo}"
+
+
+class Notificacion(models.Model):
+    id_notificacion = models.AutoField(primary_key=True)
+    usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.CASCADE,
+        db_column='id_usuario',
+        related_name='notificaciones'
+    )
+    titulo = models.CharField(max_length=120)
+    mensaje = models.TextField()
+    tipo = models.CharField(max_length=30, default='info')
+    url = models.CharField(max_length=200, blank=True)
+    leida = models.BooleanField(default=False)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'notificacion'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.titulo} - {self.usuario.correo}"
+
+
+class PasswordResetToken(models.Model):
+    id_reset = models.AutoField(primary_key=True)
+    usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.CASCADE,
+        db_column='id_usuario',
+        related_name='password_resets'
+    )
+    token = models.CharField(max_length=120, unique=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    expira_en = models.DateTimeField()
+    usado_en = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'password_reset_token'
+        ordering = ['-creado_en']
+
+    @classmethod
+    def create_for_user(cls, usuario):
+        return cls.objects.create(
+            usuario=usuario,
+            token=secrets.token_urlsafe(48),
+            expira_en=timezone.now() + timedelta(hours=1),
+        )
+
+    @property
+    def valido(self):
+        return self.usado_en is None and self.expira_en >= timezone.now()
+
+    def marcar_usado(self):
+        self.usado_en = timezone.now()
+        self.save(update_fields=['usado_en'])

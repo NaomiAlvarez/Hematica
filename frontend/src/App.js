@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import Navbar from './components/Navbar';
@@ -14,13 +14,52 @@ import MisMascotas from './pages/MisMascotas';
 import MisPacientes from './pages/MisPacientes';
 import EditarCuenta from './pages/EditarCuenta';
 import Usuarios from './pages/Usuarios';
+import ResetPassword from './pages/ResetPassword';
 
 import './pages/Pages.css';
+
+const API = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+
+const getRoleFromUsuario = (userData) => {
+  const descripcion = (userData?.tipo_usuario?.descripcion || '').toLowerCase();
+  if (descripcion === 'administrador' || descripcion === 'admin') return 'admin';
+  if (descripcion === 'veterinario') return 'veterinario';
+  return 'usuario';
+};
 
 function App() {
   const [isLogged, setIsLogged] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [usuario, setUsuario] = useState(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setCheckingSession(false);
+      return;
+    }
+
+    const reconstruirSesion = async () => {
+      try {
+        const res = await fetch(`${API}/auth/me/`);
+        if (!res.ok) throw new Error('Sesion expirada');
+        const userData = await res.json();
+        setIsLogged(true);
+        setUserRole(getRoleFromUsuario(userData));
+        setUsuario(userData);
+        localStorage.setItem('userData', JSON.stringify(userData));
+      } catch {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refresh');
+        localStorage.removeItem('userData');
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+
+    reconstruirSesion();
+  }, []);
 
   const handleLogin = (role, userData) => {
     setIsLogged(true);
@@ -33,7 +72,9 @@ function App() {
     setUserRole(null);
     setUsuario(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('refresh');
     localStorage.removeItem('usuario');
+    localStorage.removeItem('userData');
   };
 
   const handleActualizarUsuario = (nuevosDatos) => {
@@ -44,12 +85,17 @@ function App() {
   const isVeterinario = userRole === 'veterinario';
   const isUsuario = userRole === 'usuario';
 
+  if (checkingSession) {
+    return <div className="loading-state">Restaurando sesion...</div>;
+  }
+
   return (
     <Router>
       {isLogged && <Navbar userRole={userRole} onLogout={handleLogout} usuario={usuario} />}
       <div className="container-fluid">
         <Routes>
           <Route path="/login" element={!isLogged ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
+          <Route path="/reset-password" element={!isLogged ? <ResetPassword /> : <Navigate to="/" />} />
           <Route path="/" element={isLogged ? <Home userRole={userRole} usuario={usuario} /> : <Navigate to="/login" />} />
 
           {/* Solo admin */}
