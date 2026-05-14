@@ -1,43 +1,83 @@
-"""
-Views para el módulo de empleados.
-Maneja los endpoints del personal del laboratorio:
-tipos de empleado, empleados y veterinarios.
-Solo los administradores pueden crear, editar o eliminar empleados.
-"""
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from .models import TipoEmpleado, Empleado, Veterinario, VeterinarioCliente
-from .serializers import (
-    TipoEmpleadoSerializer,
-    EmpleadoSerializer,
-    VeterinarioSerializer,
-    ClienteSimpleSerializer,
-    VeterinarioClienteSerializer
-)
+
 from apps.pacientes.models import Cliente
+from apps.security import AdminWriteMixin, audit, is_admin, veterinario_for_usuario
+from .models import Empleado, TipoEmpleado, Veterinario, VeterinarioCliente
+from .serializers import (
+    ClienteSimpleSerializer,
+    EmpleadoSerializer,
+    TipoEmpleadoSerializer,
+    VeterinarioClienteSerializer,
+    VeterinarioSerializer,
+)
 
 
-class TipoEmpleadoViewSet(viewsets.ModelViewSet):
+class TipoEmpleadoViewSet(AdminWriteMixin, viewsets.ModelViewSet):
     queryset = TipoEmpleado.objects.all()
     serializer_class = TipoEmpleadoSerializer
 
+    def check_permissions(self, request):
+        super().check_permissions(request)
+        self.check_admin_write()
 
-class EmpleadoViewSet(viewsets.ModelViewSet):
-    queryset = Empleado.objects.all()
+
+class EmpleadoViewSet(AdminWriteMixin, viewsets.ModelViewSet):
     serializer_class = EmpleadoSerializer
 
+    def check_permissions(self, request):
+        super().check_permissions(request)
+        if not is_admin(self.usuario_actual):
+            raise PermissionDenied('Solo un administrador puede consultar empleados')
 
-class VeterinarioViewSet(viewsets.ModelViewSet):
-    queryset = Veterinario.objects.all()
+    def get_queryset(self):
+        return Empleado.objects.select_related('id_usuario', 'id_tipo_emp').all()
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        audit(self.request, 'crear', instance)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        audit(self.request, 'editar', instance)
+
+    def perform_destroy(self, instance):
+        audit(self.request, 'eliminar', instance)
+        instance.delete()
+
+
+class VeterinarioViewSet(AdminWriteMixin, viewsets.ModelViewSet):
     serializer_class = VeterinarioSerializer
+
+    def get_queryset(self):
+        queryset = Veterinario.objects.select_related('id_emp__id_usuario', 'id_emp')
+        if not is_admin(self.usuario_actual):
+            vet = veterinario_for_usuario(self.usuario_actual)
+            return queryset.filter(id_vet=vet.id_vet) if vet else queryset.none()
+        return queryset.all()
+
+    def perform_create(self, serializer):
+        if not is_admin(self.usuario_actual):
+            raise PermissionDenied('Solo un administrador puede crear veterinarios')
+        instance = serializer.save()
+        audit(self.request, 'crear', instance)
+
+    def perform_update(self, serializer):
+        if not is_admin(self.usuario_actual):
+            raise PermissionDenied('Solo un administrador puede editar veterinarios')
+        instance = serializer.save()
+        audit(self.request, 'editar', instance)
+
+    def perform_destroy(self, instance):
+        if not is_admin(self.usuario_actual):
+            raise PermissionDenied('Solo un administrador puede eliminar veterinarios')
+        audit(self.request, 'eliminar', instance)
+        instance.delete()
 
     @action(detail=True, methods=['get'])
     def clientes(self, request, pk=None):
-        """
-        GET /api/v1/veterinarios/{id}/clientes/
-        Retorna la lista de clientes asignados a este veterinario.
-        """
         vet = self.get_object()
         clientes = vet.clientes.all()
         serializer = ClienteSimpleSerializer(clientes, many=True)
@@ -45,11 +85,8 @@ class VeterinarioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def asignar_cliente(self, request, pk=None):
-        """
-        POST /api/v1/veterinarios/{id}/asignar_cliente/
-        Body: { "id_cliente": 1 }
-        Asigna un cliente a este veterinario.
-        """
+        if not is_admin(self.usuario_actual):
+            return Response({'error': 'Solo un administrador puede asignar clientes'}, status=403)
         vet = self.get_object()
         id_cliente = request.data.get('id_cliente')
 
@@ -61,20 +98,17 @@ class VeterinarioViewSet(viewsets.ModelViewSet):
         except Cliente.DoesNotExist:
             return Response({'error': 'Cliente no encontrado'}, status=404)
 
-        # Evitar duplicados
         if VeterinarioCliente.objects.filter(id_vet=vet, id_cliente=cliente).exists():
-            return Response({'error': 'Este cliente ya está asignado al veterinario'}, status=400)
+            return Response({'error': 'Este cliente ya esta asignado al veterinario'}, status=400)
 
-        VeterinarioCliente.objects.create(id_vet=vet, id_cliente=cliente)
+        relacion = VeterinarioCliente.objects.create(id_vet=vet, id_cliente=cliente)
+        audit(request, 'crear', relacion, 'Cliente asignado a veterinario')
         return Response({'mensaje': 'Cliente asignado correctamente'}, status=201)
 
     @action(detail=True, methods=['post'])
     def desasignar_cliente(self, request, pk=None):
-        """
-        POST /api/v1/veterinarios/{id}/desasignar_cliente/
-        Body: { "id_cliente": 1 }
-        Desasigna un cliente de este veterinario.
-        """
+        if not is_admin(self.usuario_actual):
+            return Response({'error': 'Solo un administrador puede desasignar clientes'}, status=403)
         vet = self.get_object()
         id_cliente = request.data.get('id_cliente')
 
@@ -88,21 +122,13 @@ class VeterinarioViewSet(viewsets.ModelViewSet):
         if eliminados == 0:
             return Response({'error': 'Este cliente no estaba asignado al veterinario'}, status=404)
 
+        audit(request, 'eliminar', vet, f'Cliente {id_cliente} desasignado de veterinario')
         return Response({'mensaje': 'Cliente desasignado correctamente'}, status=200)
 
     @action(detail=False, methods=['get'])
     def mis_clientes(self, request):
-        """
-        GET /api/v1/veterinarios/mis_clientes/?id_usuario=10
-        Retorna los clientes asignados al veterinario que está logueado.
-        """
-        id_usuario = request.query_params.get('id_usuario')
-        if not id_usuario:
-            return Response({'error': 'id_usuario es requerido'}, status=400)
-
-        try:
-            vet = Veterinario.objects.get(id_emp__id_usuario__id_usuario=id_usuario)
-        except Veterinario.DoesNotExist:
+        vet = veterinario_for_usuario(self.usuario_actual)
+        if not vet:
             return Response({'error': 'Veterinario no encontrado'}, status=404)
 
         clientes = vet.clientes.all()

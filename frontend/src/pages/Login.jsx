@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
 import './Login.css';
 
+const API = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+
 const Login = ({ onLogin }) => {
 
-  // Estado para errores por campo
   const [errors, setErrors] = useState({});
-
-  // Estado para deshabilitar botón mientras carga
   const [loading, setLoading] = useState(false);
-
-  // Estado para mostrar mensaje de éxito dentro de la card
   const [success, setSuccess] = useState(false);
-
-  // Estado para alternar entre login y registro
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
 
-  // Estado del formulario con todos los campos
   const [formData, setFormData] = useState({
     correo: '',
     password: '',
@@ -23,39 +18,31 @@ const Login = ({ onLogin }) => {
     num_tel: '',
   });
 
-  // Sanitiza el input eliminando etiquetas HTML para prevenir XSS
   const handleChange = (e) => {
     const { name, value } = e.target;
     const limpio = value.replace(/<[^>]*>?/gm, '');
     setFormData({ ...formData, [name]: limpio });
-    // Limpia el error del campo al corregirlo
     setErrors({ ...errors, [name]: '' });
   };
 
-  // Función de validación de todos los campos
   const validar = () => {
     let nuevosErrores = {};
 
-    // Validar correo con regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.correo || !emailRegex.test(formData.correo)) {
       nuevosErrores.correo = "Ingresa un correo electrónico válido";
     }
 
-    // Validar contraseña mínimo 8 caracteres
-    if (!formData.password || formData.password.length < 8) {
+    if (!isRecovering && (!formData.password || formData.password.length < 8)) {
       nuevosErrores.password = "La contraseña debe tener al menos 8 caracteres";
     }
 
-    // Validaciones adicionales solo al registrarse
     if (isRegistering) {
-      // Validar nombre completo: al menos nombre y apellido, solo letras y espacios
       const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}(\s[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,})+$/;
       if (!formData.nombre || !nombreRegex.test(formData.nombre.trim())) {
         nuevosErrores.nombre = "Ingresa tu nombre completo (nombre y al menos un apellido, solo letras)";
       }
 
-      // Validar teléfono exactamente 10 dígitos
       const telRegex = /^[0-9]{10}$/;
       if (!formData.num_tel || !telRegex.test(formData.num_tel)) {
         nuevosErrores.num_tel = "El teléfono debe tener exactamente 10 dígitos";
@@ -63,23 +50,35 @@ const Login = ({ onLogin }) => {
     }
 
     setErrors(nuevosErrores);
-    // Retorna true si no hay errores
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  // Maneja el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Si hay errores de validación, no continúa
     if (!validar()) return;
 
     setLoading(true);
 
     try {
-      if (isRegistering) {
-        // REGISTRO — crea usuario tipo Cliente
-        const res = await fetch('http://localhost:8000/api/v1/auth/register/', {
+      if (isRecovering) {
+        const res = await fetch(`${API}/auth/password-reset/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo: formData.correo }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          setErrors({ correo: data.error || 'No se pudo enviar la recuperación' });
+          setLoading(false);
+          return;
+        }
+
+        setSuccess(true);
+
+      } else if (isRegistering) {
+        const res = await fetch(`${API}/auth/register/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -87,7 +86,7 @@ const Login = ({ onLogin }) => {
             password: formData.password,
             nombre: formData.nombre,
             num_tel: formData.num_tel,
-            id_tipo_usuario: 1, // Siempre Cliente en registro público
+            id_tipo_usuario: 1,
           }),
         });
 
@@ -99,12 +98,10 @@ const Login = ({ onLogin }) => {
           return;
         }
 
-        // Registro exitoso — muestra mensaje dentro de la card
         setSuccess(true);
 
       } else {
-        // LOGIN — autentica al usuario
-        const res = await fetch('http://localhost:8000/api/v1/auth/login/', {
+        const res = await fetch(`${API}/auth/login/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -121,22 +118,20 @@ const Login = ({ onLogin }) => {
           return;
         }
 
-        // Guarda token en localStorage
         localStorage.setItem('token', data.access);
+        localStorage.setItem('refresh', data.refresh);
         localStorage.setItem('userData', JSON.stringify(data.usuario));
 
-        // Determina el rol según id_tipo_usuario
-        const tipo = data.usuario?.id_tipo_usuario;
+        // ── CORRECCIÓN: comparar por descripción, no por ID numérico ──
+        const descripcion = (data.usuario?.tipo_usuario?.descripcion || '').toLowerCase();
         let rol = 'usuario';
-        if ([4, 8, 11].includes(tipo)) rol = 'admin';
-        else if ([2, 6, 10].includes(tipo)) rol = 'veterinario';
+        if (descripcion === 'administrador' || descripcion === 'admin') rol = 'admin';
+        else if (descripcion === 'veterinario') rol = 'veterinario';
 
-        // Llama a onLogin para actualizar el estado global
         onLogin(rol, data.usuario);
       }
 
     } catch (error) {
-      // Error de red o servidor caído
       setErrors({ correo: 'No se pudo conectar al servidor' });
     }
 
@@ -154,21 +149,21 @@ const Login = ({ onLogin }) => {
           </div>
         </div>
 
-        <h2>{isRegistering ? 'REGISTRO' : 'BIENVENIDO'}</h2>
-        <p>{isRegistering ? 'Crea tu cuenta' : 'Laboratorio Clínico Hemática'}</p>
+        <h2>{isRecovering ? 'RECUPERAR ACCESO' : isRegistering ? 'REGISTRO' : 'BIENVENIDO'}</h2>
+        <p>{isRecovering ? 'Te enviaremos un enlace por correo' : isRegistering ? 'Crea tu cuenta' : 'Laboratorio Clínico Hemática'}</p>
 
-        {/* Si el registro fue exitoso muestra mensaje dentro de la card */}
-        {success && isRegistering ? (
+        {success && (isRegistering || isRecovering) ? (
           <div className="success-inline">
-            <div className="success-inline-icon">🐾</div>
-            <h3>¡Registro exitoso!</h3>
-            <p>El laboratorio se pondrá en contacto contigo.</p>
+            <div className="success-inline-icon">*</div>
+            <h3>{isRecovering ? 'Solicitud enviada' : '¡Registro exitoso!'}</h3>
+            <p>{isRecovering ? 'Revisa tu correo para definir una nueva contraseña.' : 'El laboratorio se pondrá en contacto contigo.'}</p>
             <button
               type="button"
               className="btn-login"
               onClick={() => {
                 setSuccess(false);
                 setIsRegistering(false);
+                setIsRecovering(false);
                 setFormData({ correo: '', password: '', nombre: '', num_tel: '' });
                 setErrors({});
               }}
@@ -179,7 +174,6 @@ const Login = ({ onLogin }) => {
         ) : (
           <form onSubmit={handleSubmit} className="login-form-container">
 
-            {/* Campo nombre — solo visible al registrarse */}
             {isRegistering && (
               <div className="input-group">
                 <label>NOMBRE COMPLETO</label>
@@ -195,7 +189,6 @@ const Login = ({ onLogin }) => {
               </div>
             )}
 
-            {/* Campo correo */}
             <div className="input-group">
               <label>CORREO ELECTRÓNICO</label>
               <input
@@ -209,7 +202,6 @@ const Login = ({ onLogin }) => {
               {errors.correo && <span className="error-message">{errors.correo}</span>}
             </div>
 
-            {/* Campo teléfono — solo visible al registrarse */}
             {isRegistering && (
               <div className="input-group">
                 <label>TELÉFONO</label>
@@ -225,7 +217,7 @@ const Login = ({ onLogin }) => {
               </div>
             )}
 
-            {/* Campo contraseña */}
+            {!isRecovering && (
             <div className="input-group">
               <label>CONTRASEÑA</label>
               <input
@@ -238,29 +230,41 @@ const Login = ({ onLogin }) => {
               />
               {errors.password && <span className="error-message">{errors.password}</span>}
             </div>
+            )}
 
-            {/* Botón principal — deshabilitado mientras carga */}
             <button type="submit" className="btn-login" disabled={loading}>
-              {loading ? 'CARGANDO...' : isRegistering ? 'REGISTRAR' : 'INICIAR SESIÓN'}
+              {loading ? 'CARGANDO...' : isRecovering ? 'ENVIAR ENLACE' : isRegistering ? 'REGISTRAR' : 'INICIAR SESIÓN'}
             </button>
 
-            {/* Link para alternar entre login y registro */}
             <div className="login-footer-links">
-              <p>{isRegistering ? '¿Ya tienes cuenta?' : '¿Cliente nuevo?'}</p>
+              <p>{isRecovering ? '¿Recordaste tu contraseña?' : isRegistering ? '¿Ya tienes cuenta?' : '¿Cliente nuevo?'}</p>
               <button
                 type="button"
                 className="btn-register-link"
                 onClick={() => {
-                  setIsRegistering(!isRegistering);
+                  setIsRegistering(isRegistering || isRecovering ? false : true);
+                  setIsRecovering(false);
                   setErrors({});
                   setFormData({ correo: '', password: '', nombre: '', num_tel: '' });
                 }}
               >
-                {isRegistering ? 'REGRESAR AL LOGIN' : 'CREAR CUENTA'}
+                {isRegistering || isRecovering ? 'REGRESAR AL LOGIN' : 'CREAR CUENTA'}
               </button>
+              {!isRegistering && !isRecovering && (
+                <button
+                  type="button"
+                  className="btn-register-link"
+                  onClick={() => {
+                    setIsRecovering(true);
+                    setErrors({});
+                    setFormData({ correo: formData.correo, password: '', nombre: '', num_tel: '' });
+                  }}
+                >
+                  OLVIDÉ MI CONTRASEÑA
+                </button>
+              )}
             </div>
 
-            {/* Overlay de carga con gatitos */}
             {loading && (
               <div className="success-overlay">
                 <div className="success-box">

@@ -15,9 +15,11 @@ from apps.empleados.models import Veterinario
 class Solicitud(models.Model):
     ESTADOS = [
         ('pendiente', 'Pendiente'),
-        ('muestra_recibida', 'Muestra recibida'),
         ('en_proceso', 'En proceso'),
+        ('muestra_recibida', 'Muestra recibida'),
+        ('resultado_cargado', 'Resultado cargado'),
         ('finalizado', 'Finalizado'),
+        ('rechazado', 'Rechazado'),
         ('cancelado', 'Cancelado'),
     ]
 

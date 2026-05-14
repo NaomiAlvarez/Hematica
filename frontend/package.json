@@ -8,6 +8,8 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.15.1",
+    "echarts": "^6.0.0",
+    "echarts-for-react": "^3.0.6",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.1",
@@ -17,6 +19,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "preview": "node scripts/serve-build.cjs",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
