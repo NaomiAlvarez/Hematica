@@ -1,3 +1,7 @@
+/*
+ * Vista administrativa de pacientes.
+ * Presenta una tabla filtrable y paginada de mascotas registradas.
+ */
 import React, { useMemo, useState, useEffect } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';

@@ -6,6 +6,7 @@ from .models import ResultadoEstudio, HistorialClinico
 
 
 class ResultadoEstudioSerializer(serializers.ModelSerializer):
+    """Expone resultado clinico y datos de contexto de solicitud/veterinario."""
     veterinario_nombre = serializers.CharField(
         source='id_vet.id_emp.id_usuario.nombre', read_only=True
     )
@@ -26,6 +27,7 @@ class ResultadoEstudioSerializer(serializers.ModelSerializer):
 
 
 class HistorialClinicoSerializer(serializers.ModelSerializer):
+    """Representa entradas del expediente clinico acumulado del paciente."""
     paciente_nombre = serializers.CharField(
         source='id_paciente.nombre', read_only=True
     )

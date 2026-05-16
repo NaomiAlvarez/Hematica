@@ -1,3 +1,8 @@
+/*
+ * Resultados clinicos.
+ * Lista resultados visibles, permite cargar PDFs y contiene el formulario de
+ * bioquimica que convierte analitos a reporte clinico estructurado.
+ */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -36,6 +41,7 @@ const ESTADO_ANALITOS = Object.fromEntries(ANALITOS.map(a => [a.key, '']));
 
 /* Utilidades de parseo, validacion y lectura de errores. */
 function parsearReporte(texto) {
+  // Solo rehidrata reportes generados por este formulario.
   try {
     const data = JSON.parse(texto);
     if (data && data.__tipo === 'bq_serica_perro') return data;
@@ -44,6 +50,7 @@ function parsearReporte(texto) {
 }
 
 function esAnomalo(resultado, referencia) {
+  // Marca valores fuera del rango de referencia escrito en cada analito.
   if (!resultado || resultado === '') return false;
   const val = parseFloat(resultado);
   if (isNaN(val)) return false;
@@ -491,6 +498,7 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
   const [porPagina,         setPorPagina]         = useState(10);
 
   const cargarResultados = useCallback(async () => {
+    // Cliente cruza resultados contra sus pacientes; admin y vet usan el alcance del backend.
     try {
       const res   = await fetch('http://localhost:8000/api/v1/resultados/');
       if (!res.ok) throw new Error();

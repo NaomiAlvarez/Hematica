@@ -1,3 +1,9 @@
+/*
+ * Punto de entrada de React.
+ * Ademas de montar <App />, envuelve window.fetch para agregar el Bearer token
+ * a las llamadas contra la API de Hematica. Asi las paginas no repiten esa
+ * cabecera en cada request protegida.
+ */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';

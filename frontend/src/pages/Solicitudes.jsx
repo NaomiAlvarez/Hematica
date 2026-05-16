@@ -1,3 +1,8 @@
+/*
+ * Flujo de solicitudes de estudio.
+ * Permite crear solicitudes con varios estudios, cambiar estados, rechazar,
+ * modificar contenido y registrar resultados cuando el laboratorio termina.
+ */
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
@@ -64,6 +69,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   // Carga de datos principales.
 
   const cargarSolicitudes = useCallback(async () => {
+    // El backend aplica permisos; aqui se preparan datos auxiliares para formularios.
     try {
       const res = await fetch('http://localhost:8000/api/v1/solicitudes/');
       if (!res.ok) throw new Error();
@@ -172,6 +178,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   };
 
   const handleSubmit = async (e) => {
+    // Primero se crea la solicitud y despues se crean sus estudios relacionados.
     e.preventDefault();
     let errores = {};
     if (!form.id_paciente) errores.id_paciente = 'Selecciona un paciente';
@@ -205,6 +212,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   // Acciones operativas de administrador y veterinario.
 
   const accionAdmin = async (sol, nuevoEstado) => {
+    // Cambia estado por endpoint dedicado para conservar auditoria y notificaciones.
     setErrEstado('');
     setProcesando(sol.id_solicitud);
     try {
@@ -234,6 +242,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   };
 
   const handleGuardarResultado = async () => {
+    // Al registrar resultado, tambien se marca la solicitud como finalizada.
     let errores = {};
     if (!formResultado.id_vet) errores.id_vet = 'Selecciona un veterinario';
     if (!formResultado.fecha_muestra) errores.fecha_muestra = 'Fecha obligatoria';

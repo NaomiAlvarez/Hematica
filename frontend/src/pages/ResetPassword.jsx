@@ -1,3 +1,7 @@
+/*
+ * Confirmacion de recuperacion de contrasena.
+ * Lee el token desde la URL y envia la nueva contrasena al backend.
+ */
 import React, { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import './Login.css';

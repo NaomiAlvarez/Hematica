@@ -1,3 +1,8 @@
+/*
+ * Administracion de usuarios y roles.
+ * Lista usuarios existentes, permite filtrar por rol y guarda cambios de rol
+ * usando endpoints administrativos del modulo auth.
+ */
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';

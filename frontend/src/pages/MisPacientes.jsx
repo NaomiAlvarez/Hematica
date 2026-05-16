@@ -1,3 +1,8 @@
+/*
+ * Pacientes asignados al usuario.
+ * Veterinarios gestionan pacientes de sus clientes; tutores operan sus propias
+ * mascotas con validaciones locales antes de enviar al backend.
+ */
 import React, { useMemo, useState, useEffect } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';

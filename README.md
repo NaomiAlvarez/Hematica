@@ -152,6 +152,7 @@ La aplicacion queda disponible en `http://localhost:3000`.
 | Documento | Contenido |
 | --- | --- |
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Vision tecnica, capas, modulos y flujo de datos. |
+| [docs/GUIA_CODIGO.md](docs/GUIA_CODIGO.md) | Mapa archivo por archivo para entender donde vive cada parte de la logica. |
 | [docs/INSTALACION.md](docs/INSTALACION.md) | Guia paso a paso para levantar el proyecto. |
 | [docs/BACKEND.md](docs/BACKEND.md) | Modulos Django, modelos, permisos y convenciones. |
 | [docs/FRONTEND.md](docs/FRONTEND.md) | Rutas, pantallas, estado de sesion y estructura React. |

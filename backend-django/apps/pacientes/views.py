@@ -1,3 +1,9 @@
+"""ViewSets de especies, razas, clientes y pacientes.
+
+Los listados se filtran con `accessible_cliente_ids`: admin ve todo, cliente ve
+sus mascotas y veterinario ve pacientes de clientes asignados.
+"""
+
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -18,6 +24,7 @@ from .serializers import ClienteSerializer, EspecieSerializer, PacienteSerialize
 
 
 class EspecieViewSet(AdminWriteMixin, viewsets.ModelViewSet):
+    """CRUD de especies; la lectura alimenta selectores del frontend."""
     queryset = Especie.objects.all()
     serializer_class = EspecieSerializer
 
@@ -39,6 +46,7 @@ class EspecieViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
 
 class RazaViewSet(AdminWriteMixin, viewsets.ModelViewSet):
+    """CRUD de razas, con filtro opcional por especie para formularios."""
     serializer_class = RazaSerializer
 
     def check_permissions(self, request):
@@ -66,6 +74,7 @@ class RazaViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
 
 class ClienteViewSet(AdminWriteMixin, viewsets.ModelViewSet):
+    """Lista tutores/clientes dentro del alcance permitido por rol."""
     serializer_class = ClienteSerializer
 
     def check_permissions(self, request):
@@ -93,6 +102,7 @@ class ClienteViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
 
 class PacienteViewSet(AdminWriteMixin, viewsets.ModelViewSet):
+    """Gestiona mascotas y documentos asociados como la cartilla PDF."""
     serializer_class = PacienteSerializer
 
     def check_permissions(self, request):
@@ -101,6 +111,7 @@ class PacienteViewSet(AdminWriteMixin, viewsets.ModelViewSet):
             raise PermissionDenied('Solo un administrador puede eliminar pacientes')
 
     def get_queryset(self):
+        """Aplica filtros por rol, cliente y busqueda de nombre."""
         queryset = Paciente.objects.select_related(
             'id_cliente__id_usuario',
             'id_raza__id_especie',
@@ -118,6 +129,7 @@ class PacienteViewSet(AdminWriteMixin, viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        """Asocia automaticamente al cliente propio cuando registra un tutor."""
         id_cliente = serializer.validated_data.get('id_cliente')
         if not is_admin(self.usuario_actual):
             cliente = cliente_for_usuario(self.usuario_actual)
@@ -146,6 +158,7 @@ class PacienteViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['patch'])
     def subir_cartilla(self, request, pk=None):
+        """Valida y guarda la cartilla de vacunacion PDF de un paciente."""
         paciente = self.get_object()
         if not user_can_access_paciente(self.usuario_actual, paciente):
             return Response({'error': 'No puedes modificar este paciente'}, status=403)
@@ -160,6 +173,7 @@ class PacienteViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['patch'])
     def eliminar_cartilla(self, request, pk=None):
+        """Elimina el archivo de cartilla y limpia la referencia en base de datos."""
         paciente = self.get_object()
         if not user_can_access_paciente(self.usuario_actual, paciente):
             return Response({'error': 'No puedes modificar este paciente'}, status=403)

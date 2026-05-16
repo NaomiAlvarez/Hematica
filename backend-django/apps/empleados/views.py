@@ -1,3 +1,9 @@
+"""ViewSets del modulo de empleados y veterinarios.
+
+El administrador puede operar empleados y asignaciones. Un veterinario solo ve
+su propio registro y sus clientes asignados.
+"""
+
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -16,6 +22,7 @@ from .serializers import (
 
 
 class TipoEmpleadoViewSet(AdminWriteMixin, viewsets.ModelViewSet):
+    """CRUD de puestos laborales; las escrituras son solo para admin."""
     queryset = TipoEmpleado.objects.all()
     serializer_class = TipoEmpleadoSerializer
 
@@ -25,6 +32,7 @@ class TipoEmpleadoViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
 
 class EmpleadoViewSet(AdminWriteMixin, viewsets.ModelViewSet):
+    """CRUD de empleados con lectura y escritura restringidas a admin."""
     serializer_class = EmpleadoSerializer
 
     def check_permissions(self, request):
@@ -49,9 +57,11 @@ class EmpleadoViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
 
 class VeterinarioViewSet(AdminWriteMixin, viewsets.ModelViewSet):
+    """Gestiona perfiles veterinarios y sus asignaciones de clientes."""
     serializer_class = VeterinarioSerializer
 
     def get_queryset(self):
+        """Admin ve todos; veterinario ve solo su propio perfil."""
         queryset = Veterinario.objects.select_related('id_emp__id_usuario', 'id_emp')
         if not is_admin(self.usuario_actual):
             vet = veterinario_for_usuario(self.usuario_actual)
@@ -78,6 +88,7 @@ class VeterinarioViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def clientes(self, request, pk=None):
+        """Lista los clientes asignados a un veterinario concreto."""
         vet = self.get_object()
         clientes = vet.clientes.all()
         serializer = ClienteSimpleSerializer(clientes, many=True)
@@ -85,6 +96,7 @@ class VeterinarioViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def asignar_cliente(self, request, pk=None):
+        """Crea la relacion veterinario-cliente, evitando duplicados."""
         if not is_admin(self.usuario_actual):
             return Response({'error': 'Solo un administrador puede asignar clientes'}, status=403)
         vet = self.get_object()
@@ -107,6 +119,7 @@ class VeterinarioViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def desasignar_cliente(self, request, pk=None):
+        """Elimina la relacion veterinario-cliente si existe."""
         if not is_admin(self.usuario_actual):
             return Response({'error': 'Solo un administrador puede desasignar clientes'}, status=403)
         vet = self.get_object()
@@ -127,6 +140,7 @@ class VeterinarioViewSet(AdminWriteMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def mis_clientes(self, request):
+        """Endpoint auxiliar para que un veterinario consulte sus clientes."""
         vet = veterinario_for_usuario(self.usuario_actual)
         if not vet:
             return Response({'error': 'Veterinario no encontrado'}, status=404)

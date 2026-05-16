@@ -1,4 +1,9 @@
 // Estudios.jsx
+/*
+ * Catalogo de estudios.
+ * Usuarios autenticados pueden consultar precios; administradores tambien
+ * pueden crear, editar y eliminar estudios.
+ */
 import React, { useMemo, useState, useEffect } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';

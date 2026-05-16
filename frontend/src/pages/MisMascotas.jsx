@@ -1,3 +1,8 @@
+/*
+ * Mascotas visibles para tutores y administradores.
+ * Permite registrar pacientes, consultar historial relacionado y subir o
+ * eliminar cartillas PDF.
+ */
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
@@ -29,6 +34,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
   const [subiendoCartilla, setSubiendoCartilla] = useState(false);
 
   const cargarMascotas = useCallback(async () => {
+    // Admin consulta todo; tutor resuelve primero su Cliente y despues sus pacientes.
     try {
       if (isAdmin) {
         const res = await fetch('http://localhost:8000/api/v1/pacientes/');

@@ -1,3 +1,7 @@
+/*
+ * Pantalla de cuenta personal.
+ * Permite actualizar nombre, telefono y contrasena del usuario autenticado.
+ */
 import React, { useState } from 'react';
 import './Login.css';
 

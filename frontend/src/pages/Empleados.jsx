@@ -1,3 +1,8 @@
+/*
+ * Administracion de empleados y veterinarios.
+ * Combina el registro de Usuario, Empleado y Veterinario, y permite asignar
+ * clientes a veterinarios desde la misma pantalla.
+ */
 import React, { useMemo, useState, useEffect } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
@@ -35,6 +40,7 @@ const Empleados = () => {
   const sanitizar = (valor) => valor.replace(/<[^>]*>?/gm, '');
 
   const cargarDatos = async () => {
+    // La misma tabla alterna entre empleados generales y perfiles veterinarios.
     setLoading(true);
     try {
       const endpoint = verVeterinarios ? 'veterinarios' : 'empleados';
@@ -198,6 +204,7 @@ const Empleados = () => {
 
   // Crea el usuario base y despues el perfil de empleado.
   const crearEmpleado = async () => {
+    // Flujo encadenado: primero Usuario, luego Empleado y finalmente Veterinario si aplica.
     const resUsuario = await fetch('http://localhost:8000/api/v1/auth/register/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

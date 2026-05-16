@@ -1,3 +1,8 @@
+/*
+ * Componente raiz de Hematica.
+ * Reconstruye la sesion desde localStorage, define el rol funcional del usuario
+ * y declara las rutas protegidas que puede visitar cada rol.
+ */
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -20,6 +25,7 @@ import './pages/Pages.css';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
 
+// Traduce la descripcion del backend al rol que usa el frontend para proteger rutas.
 const getRoleFromUsuario = (userData) => {
   const descripcion = (userData?.tipo_usuario?.descripcion || '').toLowerCase();
   if (descripcion === 'administrador' || descripcion === 'admin') return 'admin';
@@ -98,13 +104,13 @@ function App() {
           <Route path="/reset-password" element={!isLogged ? <ResetPassword /> : <Navigate to="/" />} />
           <Route path="/" element={isLogged ? <Home userRole={userRole} usuario={usuario} /> : <Navigate to="/login" />} />
 
-          {/* Rutas administrativas */}
+          {/* Rutas administrativas: solo usuarios con rol admin. */}
           <Route path="/dashboard" element={isLogged && isAdmin ? <Dashboard /> : <Navigate to="/" />} />
           <Route path="/usuarios" element={isLogged && isAdmin ? <Usuarios /> : <Navigate to="/" />} />
           <Route path="/pacientes" element={isLogged && isAdmin ? <Pacientes /> : <Navigate to="/" />} />
           <Route path="/empleados" element={isLogged && isAdmin ? <Empleados /> : <Navigate to="/" />} />
 
-          {/* Mascotas visibles segun rol */}
+          {/* Mascotas visibles para administradores y tutores. */}
           <Route path="/mascotas" element={
             isLogged && (isAdmin || isUsuario)
               ? <MisMascotas usuario={usuario} isAdmin={isAdmin} />
@@ -118,7 +124,7 @@ function App() {
               : <Navigate to="/login" />
           } />
 
-          {/* Solicitudes de estudios */}
+          {/* Solicitudes: el backend filtra por alcance de clientes/pacientes. */}
           <Route path="/solicitudes" element={
             isLogged
               ? <Solicitudes usuario={usuario} isAdmin={isAdmin} isVeterinario={isVeterinario} />

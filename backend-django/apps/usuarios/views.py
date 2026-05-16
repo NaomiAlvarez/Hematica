@@ -1,3 +1,5 @@
+"""Endpoints de autenticacion, cuenta, usuarios, auditoria y notificaciones."""
+
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
@@ -18,10 +20,12 @@ from .serializers import (
 
 
 def obtener_admin_desde_token(request):
+    """Atajo usado por vistas administrativas basadas en APIView."""
     return require_roles(request, 'admin')
 
 
 class RegisterView(APIView):
+    """Crea usuarios nuevos y su perfil Cliente cuando el rol registrado es tutor."""
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -40,6 +44,7 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+    """Valida correo/password y emite tokens JWT con los claims del proyecto."""
     def post(self, request):
         correo = request.data.get('correo')
         password = request.data.get('password')
@@ -60,6 +65,7 @@ class LoginView(APIView):
 
 
 class MeView(APIView):
+    """Devuelve los datos actuales para reconstruir sesion desde el frontend."""
     def get(self, request):
         user, error_response = get_usuario_from_request(request)
         if error_response:
@@ -68,6 +74,7 @@ class MeView(APIView):
 
 
 class ActualizarUsuarioView(APIView):
+    """Permite que cada usuario actualice nombre, telefono y password propios."""
     def patch(self, request):
         user, error_response = get_usuario_from_request(request)
         if error_response:
@@ -92,6 +99,7 @@ class ActualizarUsuarioView(APIView):
 
 
 class AdminUsuariosView(APIView):
+    """Lista usuarios para la pantalla administrativa de roles."""
     def get(self, request):
         _, error_response = obtener_admin_desde_token(request)
         if error_response:
@@ -102,6 +110,7 @@ class AdminUsuariosView(APIView):
 
 
 class AdminTiposUsuarioView(APIView):
+    """Lista roles existentes para alimentar el selector de administracion."""
     def get(self, request):
         _, error_response = obtener_admin_desde_token(request)
         if error_response:
@@ -112,6 +121,7 @@ class AdminTiposUsuarioView(APIView):
 
 
 class AdminAsignarRolView(APIView):
+    """Cambia el rol de un usuario y crea Cliente si pasa a rol tutor."""
     def patch(self, request, id_usuario):
         admin_user, error_response = obtener_admin_desde_token(request)
         if error_response:
@@ -152,6 +162,7 @@ class AdminAsignarRolView(APIView):
 
 
 class PasswordResetRequestView(APIView):
+    """Genera token temporal y envia el enlace de recuperacion por correo."""
     def post(self, request):
         correo = (request.data.get('correo') or '').strip()
         response_data = {
@@ -193,6 +204,7 @@ class PasswordResetRequestView(APIView):
 
 
 class PasswordResetConfirmView(APIView):
+    """Consume un token valido de recuperacion y guarda la nueva contrasena."""
     def post(self, request):
         token = request.data.get('token')
         password = request.data.get('password') or ''
@@ -223,6 +235,7 @@ class PasswordResetConfirmView(APIView):
 
 
 class NotificacionesView(APIView):
+    """Lista notificaciones del usuario autenticado."""
     def get(self, request):
         usuario, error_response = get_usuario_from_request(request)
         if error_response:
@@ -233,6 +246,7 @@ class NotificacionesView(APIView):
 
 
 class NotificacionMarcarLeidaView(APIView):
+    """Marca como leida una notificacion propia."""
     def patch(self, request, id_notificacion):
         usuario, error_response = get_usuario_from_request(request)
         if error_response:
@@ -252,6 +266,7 @@ class NotificacionMarcarLeidaView(APIView):
 
 
 class AdminAuditoriaView(APIView):
+    """Expone las ultimas acciones registradas para revision administrativa."""
     def get(self, request):
         _, error_response = require_roles(request, 'admin')
         if error_response:

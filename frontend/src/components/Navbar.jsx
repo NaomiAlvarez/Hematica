@@ -1,3 +1,8 @@
+/*
+ * Barra de navegacion principal.
+ * Muestra opciones segun rol, permite cerrar sesion y consulta notificaciones
+ * del usuario autenticado para marcarlas como leidas desde el menu.
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css';
@@ -32,6 +37,7 @@ const Navbar = ({ userRole, onLogout, usuario }) => {
     if (!usuario) return;
     let activo = true;
 
+    // Se recarga cada minuto para mostrar avisos nuevos sin refrescar la pagina.
     const cargar = async () => {
       try {
         const res = await fetch(`${API}/auth/notificaciones/`);
@@ -50,6 +56,7 @@ const Navbar = ({ userRole, onLogout, usuario }) => {
   }, [usuario]);
 
   const marcarLeida = async (notificacion) => {
+    // Actualizacion optimista: la UI se marca leida antes de esperar al backend.
     if (notificacion.leida) return;
     setNotificaciones((actuales) =>
       actuales.map((item) =>

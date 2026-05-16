@@ -1,3 +1,8 @@
+/*
+ * Dashboard administrativo.
+ * Reune datos de solicitudes, estudios, resultados, pacientes y auditoria para
+ * construir KPIs y graficas locales con ECharts.
+ */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as echarts from 'echarts/core';
 import { BarChart, LineChart, PieChart } from 'echarts/charts';
@@ -44,6 +49,7 @@ const ESTADO_COLORS = {
 const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 const fetchJson = async (path) => {
+  // Helper unico para que todas las tarjetas fallen con el mismo formato.
   const res = await fetch(`${API}${path}`);
   if (!res.ok) throw new Error(`No se pudo cargar ${path}`);
   return res.json();

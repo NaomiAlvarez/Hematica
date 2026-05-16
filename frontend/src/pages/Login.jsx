@@ -1,3 +1,8 @@
+/*
+ * Autenticacion publica.
+ * Maneja tres modos en una sola pantalla: inicio de sesion, registro y
+ * solicitud de recuperacion de contrasena.
+ */
 import React, { useState } from 'react';
 import './Login.css';
 

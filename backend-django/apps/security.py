@@ -1,3 +1,11 @@
+"""Utilidades transversales de seguridad para la API.
+
+Este modulo concentra decisiones que se usan en varias apps: lectura del JWT,
+normalizacion de roles, calculo del alcance de datos, auditoria,
+notificaciones y validacion basica de archivos PDF. Mantener estas reglas aqui
+evita que cada ViewSet implemente permisos de forma distinta.
+"""
+
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
@@ -8,6 +16,7 @@ PDF_MAX_SIZE = 10 * 1024 * 1024
 
 
 def role_slug(usuario):
+    """Devuelve el rol funcional usado por el backend: admin, veterinario o cliente."""
     descripcion = (usuario.id_tipo_usuario.descripcion or '').strip().lower()
     if usuario.id_tipo_usuario_id == 4 or descripcion in {'admin', 'administrador'}:
         return 'admin'
@@ -17,18 +26,27 @@ def role_slug(usuario):
 
 
 def is_admin(usuario):
+    """Atajo legible para permisos exclusivos de administradores."""
     return role_slug(usuario) == 'admin'
 
 
 def is_veterinario(usuario):
+    """Atajo legible para permisos de personal veterinario."""
     return role_slug(usuario) == 'veterinario'
 
 
 def is_cliente(usuario):
+    """Atajo legible para permisos de tutores/clientes."""
     return role_slug(usuario) == 'cliente'
 
 
 def get_usuario_from_request(request):
+    """Obtiene el Usuario autenticado desde el header Bearer.
+
+    La funcion devuelve una tupla `(usuario, error_response)`. Los endpoints la
+    usan para responder con 401 sin duplicar la lectura del token. El usuario se
+    cachea en `request.usuario_actual` para evitar repetir la consulta.
+    """
     from apps.usuarios.models import Usuario
 
     cached = getattr(request, 'usuario_actual', None)
@@ -53,6 +71,7 @@ def get_usuario_from_request(request):
 
 
 def require_roles(request, *roles):
+    """Valida que el usuario autenticado pertenezca a alguno de los roles dados."""
     usuario, error_response = get_usuario_from_request(request)
     if error_response:
         return None, error_response
@@ -62,6 +81,7 @@ def require_roles(request, *roles):
 
 
 def cliente_for_usuario(usuario):
+    """Devuelve el perfil Cliente relacionado con el usuario, si existe."""
     from apps.pacientes.models import Cliente
 
     try:
@@ -71,6 +91,7 @@ def cliente_for_usuario(usuario):
 
 
 def veterinario_for_usuario(usuario):
+    """Devuelve el perfil Veterinario relacionado con el usuario, si existe."""
     from apps.empleados.models import Veterinario
 
     try:
@@ -80,6 +101,12 @@ def veterinario_for_usuario(usuario):
 
 
 def accessible_cliente_ids(usuario):
+    """Calcula que clientes puede consultar el usuario.
+
+    - Admin: devuelve None para indicar acceso total.
+    - Cliente: solo su propio cliente.
+    - Veterinario: clientes asignados en la tabla veterinario_cliente.
+    """
     if is_admin(usuario):
         return None
 
@@ -94,15 +121,18 @@ def accessible_cliente_ids(usuario):
 
 
 def user_can_access_cliente(usuario, id_cliente):
+    """Indica si el usuario puede ver o modificar datos de un cliente concreto."""
     ids = accessible_cliente_ids(usuario)
     return ids is None or int(id_cliente) in ids
 
 
 def user_can_access_paciente(usuario, paciente):
+    """Indica si el usuario puede acceder a un paciente por medio de su cliente."""
     return user_can_access_cliente(usuario, paciente.id_cliente_id)
 
 
 def audit(request, action, instance=None, description='', metadata=None):
+    """Registra una accion relevante para trazabilidad administrativa."""
     from apps.usuarios.models import Auditoria
 
     usuario, _ = get_usuario_from_request(request)
@@ -124,6 +154,7 @@ def audit(request, action, instance=None, description='', metadata=None):
 
 
 def notify_usuario(usuario, titulo, mensaje, tipo='info', url=''):
+    """Crea una notificacion interna para un usuario concreto."""
     from apps.usuarios.models import Notificacion
 
     if usuario:
@@ -137,6 +168,7 @@ def notify_usuario(usuario, titulo, mensaje, tipo='info', url=''):
 
 
 def notify_admins(titulo, mensaje, tipo='info', url=''):
+    """Envia la misma notificacion a todos los usuarios administradores."""
     from apps.usuarios.models import Usuario
 
     admins = Usuario.objects.filter(
@@ -147,6 +179,7 @@ def notify_admins(titulo, mensaje, tipo='info', url=''):
 
 
 def validate_pdf_upload(archivo):
+    """Valida nombre, tamano, content-type y firma magica de un PDF subido."""
     if not archivo:
         return 'No se envio ningun archivo'
     if not archivo.name.lower().endswith('.pdf'):
@@ -168,6 +201,11 @@ def validate_pdf_upload(archivo):
 
 
 class AuthenticatedViewSetMixin:
+    """Mixin base para ViewSets protegidos con JWT propio del proyecto.
+
+    DRF ejecuta `initial` antes de cada accion. Aqui se resuelve el usuario y se
+    deja disponible como `self.usuario_actual` para filtros y permisos.
+    """
     def initial(self, request, *args, **kwargs):
         self.format_kwarg = self.get_format_suffix(**kwargs)
         neg = self.perform_content_negotiation(request)
@@ -188,6 +226,7 @@ class AuthenticatedViewSetMixin:
 
 
 class AdminWriteMixin(AuthenticatedViewSetMixin):
+    """Permite lectura a usuarios autenticados y limita escrituras al admin."""
     def check_admin_write(self):
         if self.request.method not in {'GET', 'HEAD', 'OPTIONS'} and not is_admin(self.usuario_actual):
             raise PermissionDenied('Solo un administrador puede modificar este recurso')
