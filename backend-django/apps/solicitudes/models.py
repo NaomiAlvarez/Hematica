@@ -45,7 +45,7 @@ class Solicitud(models.Model):
         null=True,
         help_text="Observaciones del tutor sobre la mascota."
     )
-    motivo_cancelacion = models.TextField(        # ← NUEVO
+    motivo_cancelacion = models.TextField(
         blank=True,
         null=True,
         help_text="Motivo por el que el administrador cancelo la solicitud."

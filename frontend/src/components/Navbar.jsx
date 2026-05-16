@@ -14,7 +14,7 @@ const Navbar = ({ userRole, onLogout, usuario }) => {
   const menuRef = useRef(null);
   const notifRef = useRef(null);
 
-  // Cerrar el menú si se hace click fuera
+  // Cierra el menu de usuario al hacer click fuera.
   useEffect(() => {
     const handleClickFuera = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -145,7 +145,7 @@ const Navbar = ({ userRole, onLogout, usuario }) => {
           </div>
         )}
 
-        {/* ── Dropdown usuario ── */}
+        {/* Menu del usuario */}
         {usuario && (
           <div ref={menuRef} style={{ position: 'relative' }}>
             <button

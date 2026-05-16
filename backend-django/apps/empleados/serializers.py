@@ -11,7 +11,7 @@ class TipoEmpleadoSerializer(serializers.ModelSerializer):
 
 class EmpleadoSerializer(serializers.ModelSerializer):
     puesto  = serializers.CharField(source='id_tipo_emp.puesto',    read_only=True)
-    nombre  = serializers.CharField(source='id_usuario.nombre',     read_only=True)  # ← FIX
+    nombre  = serializers.CharField(source='id_usuario.nombre',     read_only=True)
 
     class Meta:
         model = Empleado

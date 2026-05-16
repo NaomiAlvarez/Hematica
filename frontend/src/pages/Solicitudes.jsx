@@ -42,7 +42,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
 
   const sanitizar = (valor) => valor.replace(/<[^>]*>?/gm, '');
 
-  // ── HELPERS DE COSTO ──────────────────────────────────────────────────────
+  // Calculos de costo.
 
   const calcularTotal = (idSolicitud) => {
     const relacionados = solicitudEstudios.filter(se => se.id_solicitud === idSolicitud);
@@ -61,7 +61,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   const formatPrecio = (n) =>
     n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
-  // ── CARGA DE DATOS ────────────────────────────────────────────────────────
+  // Carga de datos principales.
 
   const cargarSolicitudes = useCallback(async () => {
     try {
@@ -82,14 +82,13 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
             const misClientes = await resClientes.json();
 
             if (misClientes.length === 0) {
-              // Sin clientes asignados — muestra todos los pacientes y todas las solicitudes
-              // para que el vet pueda operar igual mientras el admin le asigna clientes
+              // Sin clientes asignados, se conserva visibilidad completa temporalmente.
               const resP = await fetch('http://localhost:8000/api/v1/pacientes/');
               const todosP = resP.ok ? await resP.json() : [];
               setPacientes(todosP);
               setSolicitudes(datos);
             } else {
-              // Con clientes asignados — filtra solo sus pacientes y solicitudes
+              // Con clientes asignados, se limita la vista al alcance del veterinario.
               const pacientesPromises = misClientes.map(c =>
                 fetch(`http://localhost:8000/api/v1/pacientes/?id_cliente=${c.id_cliente}`)
                   .then(r => r.json())
@@ -102,14 +101,14 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
               );
             }
           } else {
-            // Endpoint falló — fallback a todos
+            // Si falla el endpoint auxiliar, se mantiene la carga principal.
             const resP = await fetch('http://localhost:8000/api/v1/pacientes/');
             const todosP = resP.ok ? await resP.json() : [];
             setPacientes(todosP);
             setSolicitudes(datos);
           }
         } catch {
-          // Error de red — fallback a todos
+          // Si hay error de red, se mantiene la carga principal.
           const resP = await fetch('http://localhost:8000/api/v1/pacientes/');
           const todosP = resP.ok ? await resP.json() : [];
           setPacientes(todosP);
@@ -117,7 +116,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         }
 
       } else if (usuario) {
-        // Cliente normal — solo sus mascotas
+        // Los clientes solo ven solicitudes de sus mascotas.
         const resC = await fetch('http://localhost:8000/api/v1/clientes/');
         const cs = await resC.json();
         const miCliente = cs.find(c => String(c.id_usuario) === String(usuario.id_usuario));
@@ -145,7 +144,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   const recargarEstudios = () =>
     fetch('http://localhost:8000/api/v1/solicitud-estudios/').then(r => r.json()).then(setSolicitudEstudios);
 
-  // ── FORMULARIO ────────────────────────────────────────────────────────────
+  // Formulario de solicitud.
 
   const toggleEstudio = (id) => {
     setForm(prev => ({
@@ -203,7 +202,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     } catch { setErrForm({ general: 'Error al conectar con el servidor' }); }
   };
 
-  // ── ACCIONES ADMIN ────────────────────────────────────────────────────────
+  // Acciones operativas de administrador y veterinario.
 
   const accionAdmin = async (sol, nuevoEstado) => {
     setErrEstado('');
@@ -266,7 +265,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     finally { setGuardandoResultado(false); }
   };
 
-  // ── MODIFICAR / EDITAR / ELIMINAR ────────────────────────────────────────
+  // Modificacion, edicion y eliminacion de solicitudes.
 
   const abrirModalModificar = (sol) => {
     const estudiosActuales = solicitudEstudios
@@ -374,7 +373,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     }
   };
 
-  // ── COMPONENTES INTERNOS ─────────────────────────────────────────────────
+  // Componentes internos de la pantalla.
 
   const badgeEstado = (estado) => (
     <span className={`status-badge status-${estado.toLowerCase()}`}>
@@ -435,7 +434,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     </div>
   );
 
-  // ── RENDER ───────────────────────────────────────────────────────────────
+  // Datos derivados para render.
 
   const solicitudesFiltradas = useMemo(() => {
     const texto = normalizeText(busqueda);
@@ -477,7 +476,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     </p>
   </div>
 
-  {/* Solo el Veterinario verá el botón de agregar */}
+  {/* Solo veterinarios pueden crear solicitudes desde esta pantalla */}
   {isVeterinario && (
     <button 
       className="btn-add-boutique" 
@@ -488,7 +487,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   )}
 </header>
 
-      {/* ── Form nueva solicitud ── */}
+      {/* Formulario de nueva solicitud */}
       {mostrarForm && isVeterinario && (
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
           <h3 style={{ marginBottom: '16px', color: '#1e293b' }}>Nueva Solicitud</h3>
@@ -529,7 +528,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         </div>
       )}
 
-      {/* ── Modal editar solicitud (veterinario) ── */}
+      {/* Modal para editar solicitud por veterinario */}
       {modalEditarSol && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
@@ -579,7 +578,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         </div>
       )}
 
-      {/* ── Modal confirmar eliminar solicitud ── */}
+      {/* Modal de confirmacion para eliminar solicitud */}
       {modalEliminarSol && (
         <div style={styles.overlay}>
           <div style={{ ...styles.modal, maxWidth: '400px', textAlign: 'center' }}>
@@ -598,7 +597,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         </div>
       )}
 
-      {/* ── Modal rechazar ── */}
+      {/* Modal para rechazar solicitud */}
       {modalRechazar && (
         <div style={styles.overlay}>
           <div style={{ ...styles.modal, maxWidth: '480px' }}>
@@ -627,7 +626,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         </div>
       )}
 
-      {/* ── Modal finalizar ── */}
+      {/* Modal para finalizar solicitud */}
       {modalFinalizar && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
@@ -635,7 +634,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
             <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '4px' }}>
               Paciente: <strong>{modalFinalizar.paciente_nombre}</strong>
             </p>
-            {/* Desglose de costos en modal finalizar */}
+            {/* Desglose de costos */}
             <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px', marginBottom: '20px' }}>
               <p style={{ fontSize: '11px', fontWeight: '700', color: '#15803d', letterSpacing: '1px', marginBottom: '6px' }}>
                 ESTUDIOS A PROCESAR
@@ -701,7 +700,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         </div>
       )}
 
-      {/* ── Modal modificar (canceladas) ── */}
+      {/* Modal para modificar solicitudes canceladas */}
       {modalModificar && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
@@ -746,7 +745,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
         </div>
       )}
 
-      {/* ── Tabla ── */}
+      {/* Tabla de solicitudes */}
       <ListingControls
         search={busqueda}
         onSearchChange={setBusqueda}
@@ -807,7 +806,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                     <td className="name-cell">{sol.paciente_nombre}</td>
                     {(isAdmin || isVeterinario) && <td style={{ fontSize: '0.85rem' }}>{sol.dueno}</td>}
 
-                    {/* ── ESTUDIOS Y COSTO ── */}
+                    {/* Estudios y costo */}
                     <td>
                       {estudiosDeSol.map(se => {
                         const est = estudios.find(e => e.id_catalogo === se.id_catalogo);
@@ -840,7 +839,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
 
                     <td style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }}>{sol.notas_cliente || '—'}</td>
 
-                    {/* ── ESTADO ── */}
+                    {/* Estado */}
                     <td>
                       {badgeEstado(sol.estado)}
                       {['cancelado', 'rechazado'].includes(sol.estado) && sol.motivo_cancelacion && (
@@ -873,7 +872,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
 
                     <td style={{ fontSize: '0.85rem' }}>{new Date(sol.fecha_solicitud).toLocaleDateString()}</td>
 
-                    {/* ── ACCIONES ADMIN ── */}
+                    {/* Acciones administrativas */}
                     {isAdmin && (
                       <td className="actions-cell">
                         {terminada ? (

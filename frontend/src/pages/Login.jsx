@@ -122,7 +122,7 @@ const Login = ({ onLogin }) => {
         localStorage.setItem('refresh', data.refresh);
         localStorage.setItem('userData', JSON.stringify(data.usuario));
 
-        // ── CORRECCIÓN: comparar por descripción, no por ID numérico ──
+        // El backend envia el rol por descripcion; evitar depender de IDs.
         const descripcion = (data.usuario?.tipo_usuario?.descripcion || '').toLowerCase();
         let rol = 'usuario';
         if (descripcion === 'administrador' || descripcion === 'admin') rol = 'admin';

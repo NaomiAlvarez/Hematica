@@ -18,7 +18,7 @@ const Empleados = () => {
     id_tipo_usuario: '', nombre_clinica: '', direccion: '', curp: '', cedula: '',
   });
 
-  // Estado para gestión de clientes de un veterinario
+  // Estado para administrar los clientes asignados a un veterinario.
   const [vetSeleccionado, setVetSeleccionado] = useState(null);
   const [clientesAsignados, setClientesAsignados] = useState([]);
   const [todosLosClientes, setTodosLosClientes] = useState([]);
@@ -46,7 +46,7 @@ const Empleados = () => {
 
   useEffect(() => { cargarDatos(); }, [verVeterinarios]);
 
-  // ── GESTIÓN DE CLIENTES ─────────────────────────────────────
+  // Gestion de clientes asignados.
   const gestionarClientes = async (vet) => {
     if (vetSeleccionado?.id_vet === vet.id_vet) { setVetSeleccionado(null); return; }
     setVetSeleccionado(vet);
@@ -103,7 +103,7 @@ const Empleados = () => {
     } catch { setErrClientes('Error al conectar con el servidor'); }
   };
 
-  // ── FORMULARIO ───────────────────────────────────────────────
+  // Formulario de empleado o veterinario.
   const handleChange = (e) => {
     const { name, value } = e.target;
     const limpio = name === 'curp' ? sanitizar(value).toUpperCase() : sanitizar(value);
@@ -111,7 +111,7 @@ const Empleados = () => {
     setErrForm({ ...errForm, [name]: '' });
   };
 
-  // Abrir formulario para EDITAR un empleado
+  // Carga el formulario con los datos del empleado seleccionado.
   const abrirEditar = (item) => {
     setEditandoItem(item);
     setMostrarForm(true);
@@ -119,7 +119,7 @@ const Empleados = () => {
     setVetSeleccionado(null);
 
     if (verVeterinarios) {
-      // item es veterinario — tenemos nombre, clinica, cedula, curp, clientes_ids
+      // El endpoint de veterinarios expone datos profesionales y clientes.
       setForm({
         nombre: item.nombre || '',
         correo: '',
@@ -132,7 +132,7 @@ const Empleados = () => {
         cedula: item.cedula || '',
       });
     } else {
-      // item es empleado — tenemos puesto, nombre_clinica, telefono, nombre
+      // El endpoint de empleados expone datos laborales basicos.
       setForm({
         nombre: item.nombre || '',
         correo: '',
@@ -147,7 +147,7 @@ const Empleados = () => {
     }
   };
 
-  // Abrir formulario para NUEVO empleado
+  // Reinicia el formulario para crear un empleado.
   const abrirNuevo = () => {
     setEditandoItem(null);
     setMostrarForm(!mostrarForm);
@@ -156,14 +156,14 @@ const Empleados = () => {
     setForm({ nombre: '', correo: '', password: '', num_tel: '', id_tipo_usuario: '', nombre_clinica: '', direccion: '', curp: '', cedula: '' });
   };
 
-  // Validación del formulario
+  // Validacion del formulario antes de llamar a la API.
   const validarForm = () => {
     let errores = {};
     const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{5,100}$/;
     if (!form.nombre.trim() || !nombreRegex.test(form.nombre.trim()))
       errores.nombre = 'El nombre debe tener al menos 5 letras, sin números ni caracteres especiales';
 
-    // Correo y contraseña solo obligatorios al crear
+    // Correo y contrasena solo son obligatorios al crear usuarios.
     if (!editandoItem) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!form.correo || !emailRegex.test(form.correo))
@@ -196,7 +196,7 @@ const Empleados = () => {
     return errores;
   };
 
-  // Crear nuevo empleado
+  // Crea el usuario base y despues el perfil de empleado.
   const crearEmpleado = async () => {
     const resUsuario = await fetch('http://localhost:8000/api/v1/auth/register/', {
       method: 'POST',
@@ -245,10 +245,10 @@ const Empleados = () => {
     return true;
   };
 
-  // Editar empleado existente
+  // Actualiza un empleado existente.
   const editarEmpleado = async () => {
     if (verVeterinarios) {
-      // Editar veterinario: actualizar curp y cedula
+      // Los veterinarios guardan datos profesionales adicionales.
       const res = await fetch(`http://localhost:8000/api/v1/veterinarios/${editandoItem.id_vet}/`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -261,7 +261,7 @@ const Empleados = () => {
         setErrForm({ general: 'Error al actualizar el veterinario' });
         return false;
       }
-      // También actualizar datos del empleado (clínica, teléfono)
+      // Los datos de clinica y telefono pertenecen al empleado base.
       const resEmp = await fetch(`http://localhost:8000/api/v1/empleados/${editandoItem.id_emp}/`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -275,7 +275,7 @@ const Empleados = () => {
         return false;
       }
     } else {
-      // Editar empleado general
+      // Empleado general sin datos profesionales de veterinario.
       const res = await fetch(`http://localhost:8000/api/v1/empleados/${editandoItem.id_emp}/`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -311,7 +311,7 @@ const Empleados = () => {
     setGuardando(false);
   };
 
-  // Eliminar empleado o veterinario
+  // Elimina el recurso mostrado en la tabla actual.
   const handleEliminar = async (item) => {
     const nombre = verVeterinarios ? item.nombre : (item.nombre || item.puesto);
     if (!window.confirm(`¿Seguro que quieres eliminar a ${nombre}? Esta acción no se puede deshacer.`)) return;
@@ -370,7 +370,7 @@ const Empleados = () => {
         </button>
       </header>
 
-      {/* ── FORMULARIO NUEVO / EDITAR ── */}
+      {/* Formulario de creacion y edicion */}
       {mostrarForm && (
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
           <h3 style={{ marginBottom: '16px', color: '#1e293b' }}>
@@ -380,7 +380,7 @@ const Empleados = () => {
           </h3>
           <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
 
-            {/* Nombre — siempre visible pero readonly al editar */}
+            {/* Nombre visible; solo lectura durante edicion */}
             <div className="input-group">
               <label>NOMBRE COMPLETO {!editandoItem && '*'}</label>
               <input type="text" name="nombre" value={form.nombre} onChange={handleChange}
@@ -392,7 +392,7 @@ const Empleados = () => {
               {editandoItem && <span style={{ fontSize: '11px', color: '#94a3b8' }}>El nombre se gestiona desde el perfil del usuario</span>}
             </div>
 
-            {/* Teléfono — siempre visible */}
+            {/* Telefono visible para todos los tipos de empleado */}
             <div className="input-group">
               <label>TELÉFONO *</label>
               <input type="tel" name="num_tel" value={form.num_tel} onChange={handleChange}
@@ -401,7 +401,7 @@ const Empleados = () => {
               {errForm.num_tel && <span className="error-message">{errForm.num_tel}</span>}
             </div>
 
-            {/* Campos solo al crear */}
+            {/* Campos requeridos solo al crear */}
             {!editandoItem && (
               <>
                 <div className="input-group">
@@ -432,7 +432,7 @@ const Empleados = () => {
               </>
             )}
 
-            {/* Clínica */}
+            {/* Datos de clinica */}
             <div className="input-group">
               <label>NOMBRE DE LA CLÍNICA *</label>
               <input type="text" name="nombre_clinica" value={form.nombre_clinica} onChange={handleChange}
@@ -441,7 +441,7 @@ const Empleados = () => {
               {errForm.nombre_clinica && <span className="error-message">{errForm.nombre_clinica}</span>}
             </div>
 
-            {/* Dirección — solo para empleados no veterinarios */}
+            {/* Direccion solo para empleados no veterinarios */}
             {(!editandoItem && !esVeterinario) || (editandoItem && !verVeterinarios) ? (
               <div className="input-group" style={{ gridColumn: '1/-1' }}>
                 <label>DIRECCIÓN *</label>
@@ -452,7 +452,7 @@ const Empleados = () => {
               </div>
             ) : null}
 
-            {/* Campos extra solo para veterinario */}
+            {/* Datos profesionales del veterinario */}
             {((!editandoItem && esVeterinario) || (editandoItem && verVeterinarios)) && (
               <>
                 <div className="input-group">
@@ -489,7 +489,7 @@ const Empleados = () => {
         </div>
       )}
 
-      {/* ── TABS ── */}
+      {/* Selector de vista */}
       <div className="personal-tabs-container">
         <button className={`btn-tab-boutique ${!verVeterinarios ? 'active' : ''}`}
           onClick={() => { setVerVeterinarios(false); setVetSeleccionado(null); setMostrarForm(false); setEditandoItem(null); }}>
@@ -501,7 +501,7 @@ const Empleados = () => {
         </button>
       </div>
 
-      {/* ── TABLA ── */}
+      {/* Tabla de empleados */}
       <ListingControls
         search={busqueda}
         onSearchChange={setBusqueda}
@@ -598,7 +598,7 @@ const Empleados = () => {
                     </td>
                   </tr>
 
-                  {/* Panel de gestión de clientes expandido */}
+                  {/* Panel expandido de clientes asignados */}
                   {verVeterinarios && vetSeleccionado?.id_vet === item.id_vet && (
                     <tr>
                       <td colSpan={7} style={{ background: '#eff6ff', padding: '16px 24px', borderBottom: '2px solid #bfdbfe' }}>

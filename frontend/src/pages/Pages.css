@@ -1,9 +1,9 @@
-/* src/pages/Pages.css - DISEÑO CLÍNICO MINIMALISTA (AZUL & BLANCO) */
+/* Estilos compartidos para pantallas de operacion. */
 
-/* 1. CONFIGURACIÓN GENERAL */
+/* Configuracion general. */
 .page-container {
-    background-color: #f1f5f9; /* Un gris azulado muy claro y limpio */
-    color: #1e293b; /* Azul medianoche para el texto */
+    background-color: #f1f5f9; /* Fondo claro de trabajo. */
+    color: #1e293b; /* Texto principal. */
     min-height: 100vh;
     padding: 40px 60px;
     width: 100%;
@@ -19,21 +19,21 @@
 
 .title-boutique {
     font-family: 'Montserrat', sans-serif;
-    font-weight: 600; /* Un poco más de peso para que resalte en blanco */
+    font-weight: 600; /* Mejora contraste sobre fondos claros. */
     letter-spacing: 4px;
     text-transform: uppercase;
-    color: #0f172a; /* Azul casi negro */
+    color: #0f172a; /* Titulo principal. */
     margin: 0;
 }
 
 .subtitle-boutique {
-    color: #3b82f6; /* Azul brillante médico */
+    color: #3b82f6; /* Color de acento. */
     font-size: 0.95rem;
     font-weight: 500;
     margin: 0;
 }
 
-/* 2. DISEÑO DE TABLA (ESTILO CARD FLOTANTE) */
+/* Tablas de datos. */
 .table-responsive {
     width: 100%;
     margin-top: 20px;
@@ -95,13 +95,13 @@
     letter-spacing: 0.5px;
 }
 
-/* Azul sólido para acciones o finalizados */
+/* Estado finalizado o accion principal. */
 .status-finalizado, .status-disponible, .btn-add-boutique {
-    background-color: #2563eb; /* Azul Rey */
+    background-color: #2563eb; /* Color principal. */
     color: #ffffff;
 }
 
-/* Azul claro para pendientes */
+/* Estado pendiente. */
 .status-pendiente {
     background-color: #dbeafe;
     color: #1e40af;
@@ -135,7 +135,7 @@
 
 /* 4. CELDAS ESPECIALES */
 .id-cell {
-    color: #3b82f6 !important; /* Azul para el ID */
+    color: #3b82f6 !important; /* Identificador destacado. */
     font-weight: 700;
 }
 
@@ -144,14 +144,14 @@
     font-weight: 600;
 }
 
-/* 5. DISEÑO DEL LOGIN (MODO CLARO) */
+/* Login en modo claro. */
 .login-container {
     height: 100vh;
     display: flex;
     background-color: #f8fafc;
 }
 
-/* Preparando para la pantalla dividida que sugerí */
+/* Contenedor de login. */
 .login-card {
     background-color: #ffffff;
     padding: 45px;
@@ -169,7 +169,7 @@
     background-color: #f1f5f9;
 }
 
-/* 6. NAVEGACIÓN DE SUBMENÚ (BOTONES DE PERSONAL) */
+/* Navegacion secundaria. */
 .personal-tabs-container {
     display: flex;
     gap: 12px;
@@ -206,9 +206,9 @@
     color: #1e293b;
 }
 
-/* BOTÓN DE ACCIÓN EN TABLA (GESTIONAR / EDITAR) */
+/* Boton de accion dentro de tablas. */
 .btn-table-action {
-    background-color: #1e293b; /* Azul Marino Profundo */
+    background-color: #1e293b; /* Boton oscuro. */
     color: white;
     border: none;
     padding: 8px 16px;
@@ -294,7 +294,7 @@
 
 /* Estilo específico para los nombres en la tabla */
 .patient-name {
-  color: #001f3f; /* Azul marino boutique */
+  color: #001f3f; /* Nombre destacado. */
   font-weight: 700;
   font-size: 1.05rem;
 }

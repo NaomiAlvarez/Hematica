@@ -4,9 +4,7 @@ import html2canvas from "html2canvas";
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
 
-/* ─────────────────────────────────────────────
-   DATOS FIJOS
-───────────────────────────────────────────────*/
+/* Catalogos fijos usados por el formulario de bioquimica. */
 const ANALITOS = [
   { key: 'glucosa',           nombre: 'Glucosa',            unidad: 'mmol/L',  referencia: '3.88 – 6.88' },
   { key: 'urea',              nombre: 'Urea',               unidad: 'mmol/L',  referencia: '2.1 – 7.9'   },
@@ -36,9 +34,7 @@ const ANAMNESIS_OPS = ['', 'Preanestésico', 'Control rutinario', 'Diagnóstico 
 const SEXO_OPS      = ['', 'Macho', 'Hembra', 'Macho castrado', 'Hembra esterilizada'];
 const ESTADO_ANALITOS = Object.fromEntries(ANALITOS.map(a => [a.key, '']));
 
-/* ─────────────────────────────────────────────
-   HELPERS
-───────────────────────────────────────────────*/
+/* Utilidades de parseo, validacion y lectura de errores. */
 function parsearReporte(texto) {
   try {
     const data = JSON.parse(texto);
@@ -68,7 +64,7 @@ async function leerErrorServidor(res) {
   return 'Error al subir el archivo PDF al servidor';
 }
 
-/* Campo de solo lectura */
+/* Campo de solo lectura usado dentro del formulario. */
 const CampoReadonly = ({ label, value }) => (
   <div style={st.campo}>
     <label style={st.lbl}>{label}</label>
@@ -89,9 +85,7 @@ const CampoReadonly = ({ label, value }) => (
   </div>
 );
 
-/* ─────────────────────────────────────────────
-   MODAL DEL FORMULARIO
-───────────────────────────────────────────────*/
+/* Modal del formulario de bioquimica serica. */
 const FormularioBioquimica = ({ resultado, onClose, onGuardado }) => {
   const reportePrevio = useMemo(
     () => parsearReporte(resultado.reporte_clinico),
@@ -119,7 +113,7 @@ const FormularioBioquimica = ({ resultado, onClose, onGuardado }) => {
   const [guardando, setGuardando] = useState(false);
   const [error,     setError]     = useState(null);
   
-  // Nuevos estados para la subida de PDF
+  // Controla la confirmacion y generacion del PDF.
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [generandoPdf, setGenerandoPdf] = useState(false);
 
@@ -166,7 +160,7 @@ const FormularioBioquimica = ({ resultado, onClose, onGuardado }) => {
   const setAnalito = (key, valor)   => setFormData(prev => ({ ...prev, analitos: { ...prev.analitos, [key]: valor } }));
   const limpiarErr = (campo)        => setErrores(prev => ({ ...prev, [campo]: '' }));
 
-  /* ── Validaciones y guardar JSON ── */
+  /* Validacion y guardado del reporte estructurado. */
   const handleGuardar = async () => {
     const nuevosErrores = {};
     if (!formData.fecha) nuevosErrores.fecha = 'La fecha es obligatoria';
@@ -217,7 +211,7 @@ const FormularioBioquimica = ({ resultado, onClose, onGuardado }) => {
       );
       if (!res.ok) throw new Error('Error al guardar datos en el servidor');
       
-      // Integración: Mostrar confirmación en lugar de cerrar el modal
+      // Mantiene el modal abierto para que el usuario confirme la generacion.
       setMostrarConfirmacion(true);
     } catch (e) {
       setError(e.message || 'No se pudo conectar al servidor.');
@@ -226,7 +220,7 @@ const FormularioBioquimica = ({ resultado, onClose, onGuardado }) => {
     }
   };
 
-  /* ───── GENERACIÓN Y SUBIDA DE PDF ───── */
+  /* Generacion y subida del PDF. */
   const generarPDF = async () => {
     const elemento = document.querySelector('[data-pdf="true"]');
     if (!elemento) return null;
@@ -484,9 +478,7 @@ const FormularioBioquimica = ({ resultado, onClose, onGuardado }) => {
   );
 };
 
-/* ─────────────────────────────────────────────
-   COMPONENTE PRINCIPAL
-───────────────────────────────────────────────*/
+/* Componente principal de resultados. */
 const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
   const [resultados,        setResultados]        = useState([]);
   const [loading,           setLoading]           = useState(true);
@@ -728,9 +720,7 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
 
 export default ResultadoEstudio;
 
-/* ─────────────────────────────────────────────
-   ESTILOS
-───────────────────────────────────────────────*/
+/* Estilos locales del modal y formulario. */
 const st = {
   overlay:      { position: 'fixed', inset: 0, zIndex: 1000, backgroundColor: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' },
   modal:        { backgroundColor: '#fff', borderRadius: 16, width: '100%', maxWidth: 820, maxHeight: 'calc(100vh - 48px)', overflowY: 'auto', padding: '32px 36px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', position: 'relative', marginBottom: 24 },

@@ -98,48 +98,48 @@ function App() {
           <Route path="/reset-password" element={!isLogged ? <ResetPassword /> : <Navigate to="/" />} />
           <Route path="/" element={isLogged ? <Home userRole={userRole} usuario={usuario} /> : <Navigate to="/login" />} />
 
-          {/* Solo admin */}
+          {/* Rutas administrativas */}
           <Route path="/dashboard" element={isLogged && isAdmin ? <Dashboard /> : <Navigate to="/" />} />
           <Route path="/usuarios" element={isLogged && isAdmin ? <Usuarios /> : <Navigate to="/" />} />
           <Route path="/pacientes" element={isLogged && isAdmin ? <Pacientes /> : <Navigate to="/" />} />
           <Route path="/empleados" element={isLogged && isAdmin ? <Empleados /> : <Navigate to="/" />} />
 
-          {/* Admin ve todos los pacientes, usuario ve los suyos */}
+          {/* Mascotas visibles segun rol */}
           <Route path="/mascotas" element={
             isLogged && (isAdmin || isUsuario)
               ? <MisMascotas usuario={usuario} isAdmin={isAdmin} />
               : <Navigate to="/" />
           } />
 
-          {/* Estudios */}
+          {/* Catalogo de estudios */}
           <Route path="/estudios" element={
             isLogged
               ? <Estudios userRole={userRole} />
               : <Navigate to="/login" />
           } />
 
-          {/* Solicitudes */}
+          {/* Solicitudes de estudios */}
           <Route path="/solicitudes" element={
             isLogged
               ? <Solicitudes usuario={usuario} isAdmin={isAdmin} isVeterinario={isVeterinario} />
               : <Navigate to="/login" />
           } />
 
-          {/* Resultados */}
+          {/* Resultados clinicos */}
           <Route path="/resultados" element={
             isLogged
               ? <ResultadoEstudio usuario={usuario} isAdmin={isAdmin} isVeterinario={isVeterinario} />
               : <Navigate to="/login" />
           } />
 
-          {/* Mis Pacientes — veterinario */}
+          {/* Pacientes vinculados al usuario */}
           <Route path="/mis-pacientes" element={
             isLogged && (isVeterinario || isUsuario)
               ? <MisPacientes usuario={usuario} />
               : <Navigate to="/" />
           } />
 
-          {/* Editar cuenta — todos los roles */}
+          {/* Cuenta del usuario autenticado */}
           <Route path="/editar-cuenta" element={
             isLogged
               ? <EditarCuenta usuario={usuario} onActualizar={handleActualizarUsuario} />

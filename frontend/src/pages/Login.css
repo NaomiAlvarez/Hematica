@@ -155,7 +155,7 @@
   margin-top: 20px;
 }
 
-/* Campo con error — borde rojo */
+/* Campo con error. */
 .input-error {
   border: 2px solid #ef4444 !important;
   background: #fef2f2 !important;
@@ -212,7 +212,7 @@
   100% { transform: translateX(20px); opacity: 0; }
 }
 
-/* Mensaje de éxito dentro de la card de registro */
+/* Mensaje de exito dentro de la tarjeta de registro. */
 .success-inline {
   display: flex;
   flex-direction: column;
@@ -242,7 +242,7 @@
   margin: 0;
 }
 
-/* Animación de entrada del mensaje de éxito */
+/* Animacion de entrada del mensaje de exito. */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
