@@ -1,8 +1,13 @@
+/*
+ * Pacientes asignados al usuario.
+ * Veterinarios gestionan pacientes de sus clientes; tutores operan sus propias
+ * mascotas con validaciones locales antes de enviar al backend.
+ */
 import React, { useMemo, useState, useEffect } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
 
-// ─── Modal de confirmación personalizado ──────────────────────────────────────
+// Modal de confirmacion personalizado.
 const ModalConfirm = ({ mensaje, onConfirmar, onCancelar, tipo = 'danger' }) => (
   <div style={styles.overlay}>
     <div style={{ ...styles.modal, maxWidth: '400px', textAlign: 'center' }}>
@@ -23,7 +28,7 @@ const ModalConfirm = ({ mensaje, onConfirmar, onCancelar, tipo = 'danger' }) => 
   </div>
 );
 
-// ─── Modal de aviso (reemplaza alert) ─────────────────────────────────────────
+// Modal de aviso para sustituir alert del navegador.
 const ModalAviso = ({ mensaje, onCerrar }) => (
   <div style={styles.overlay}>
     <div style={{ ...styles.modal, maxWidth: '400px', textAlign: 'center' }}>
@@ -58,7 +63,7 @@ const MisPacientes = ({ usuario }) => {
   const [guardandoEditar, setGuardandoEditar] = useState(false);
   const [errEditar, setErrEditar] = useState('');
 
-  // ─── Modales personalizados ───────────────────────────────────────────────
+  // Estado de modales personalizados.
   const [confirm, setConfirm] = useState(null); // { mensaje, onConfirmar }
   const [aviso, setAviso] = useState(null);      // mensaje string
 
@@ -340,7 +345,7 @@ const MisPacientes = ({ usuario }) => {
   return (
     <div className="page-container">
 
-      {/* ── Modales globales ── */}
+      {/* Modales globales */}
       {confirm && (
         <ModalConfirm
           mensaje={confirm.mensaje}
@@ -370,7 +375,7 @@ const MisPacientes = ({ usuario }) => {
         </div>
       )}
 
-      {/* ── Modal registrar ── */}
+      {/* Modal para registrar paciente */}
       {mostrarFormulario && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
@@ -392,7 +397,7 @@ const MisPacientes = ({ usuario }) => {
         </div>
       )}
 
-      {/* ── Modal editar ── */}
+      {/* Modal para editar paciente */}
       {modalEditar && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
@@ -408,7 +413,7 @@ const MisPacientes = ({ usuario }) => {
         </div>
       )}
 
-      {/* ── Modal cartilla ── */}
+      {/* Modal de cartilla */}
       {modalCartilla && (
         <div style={styles.overlay}>
           <div style={{ ...styles.modal, maxWidth: '480px' }}>
@@ -439,7 +444,7 @@ const MisPacientes = ({ usuario }) => {
         </div>
       )}
 
-      {/* ── Tabla ── */}
+      {/* Tabla de pacientes */}
       <ListingControls
         search={busqueda}
         onSearchChange={setBusqueda}

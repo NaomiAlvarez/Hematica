@@ -1,3 +1,6 @@
-from django.test import TestCase
+"""Pruebas del modulo empleados.
 
-# Create your tests here.
+Archivo reservado para casos de permisos, asignaciones veterinario-cliente y
+CRUD administrativo de empleados.
+"""
+from django.test import TestCase

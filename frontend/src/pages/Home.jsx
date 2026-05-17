@@ -1,3 +1,7 @@
+/*
+ * Pantalla inicial despues del login.
+ * Sirve como bienvenida simple antes de entrar a los modulos operativos.
+ */
 import React from 'react';
 import './Home.css';
 

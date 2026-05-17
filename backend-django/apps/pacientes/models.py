@@ -8,6 +8,7 @@ from apps.usuarios.models import Usuario
 
 
 class Especie(models.Model):
+    """Grupo biologico principal de una mascota, por ejemplo perro o gato."""
     id_especie = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=25)
 
@@ -19,6 +20,7 @@ class Especie(models.Model):
 
 
 class Raza(models.Model):
+    """Raza asociada a una especie; alimenta selectores dependientes."""
     id_raza = models.AutoField(primary_key=True)
     id_especie = models.ForeignKey(Especie, on_delete=models.PROTECT, db_column='id_especie')
     nombre = models.CharField(max_length=30)
@@ -31,6 +33,7 @@ class Raza(models.Model):
 
 
 class Cliente(models.Model):
+    """Perfil de tutor ligado uno a uno con un Usuario del sistema."""
     id_cliente = models.AutoField(primary_key=True)
     id_usuario = models.OneToOneField(Usuario, on_delete=models.PROTECT, db_column='id_usuario')
     genero = models.CharField(max_length=1)
@@ -43,6 +46,7 @@ class Cliente(models.Model):
 
 
 class Paciente(models.Model):
+    """Mascota atendida por el laboratorio y asociada a un cliente/tutor."""
     id_paciente = models.AutoField(primary_key=True)
     id_cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, db_column='id_cliente')
     id_raza = models.ForeignKey(Raza, on_delete=models.PROTECT, db_column='id_raza')

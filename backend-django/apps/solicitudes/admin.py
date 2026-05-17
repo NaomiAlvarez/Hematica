@@ -1,3 +1,5 @@
-from django.contrib import admin
+"""Configuracion del modulo solicitudes para el panel admin de Django.
 
-# Register your models here.
+El flujo de solicitudes y resultados vive en los ViewSets de la API.
+"""
+from django.contrib import admin

@@ -1,7 +1,12 @@
+/*
+ * Pantalla de cuenta personal.
+ * Permite actualizar nombre, telefono y contrasena del usuario autenticado.
+ */
 import React, { useState } from 'react';
 import './Login.css';
 
 const EditarCuenta = ({ usuario, onActualizar }) => {
+  // Inicializa el formulario con los datos actuales del usuario autenticado o strings vacíos
   const [form, setForm] = useState({
     nombre: usuario?.nombre || '',
     num_tel: usuario?.num_tel || '',
@@ -12,13 +17,16 @@ const EditarCuenta = ({ usuario, onActualizar }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Controla los cambios en los inputs, aplicando una limpieza regex preventiva contra inyección de etiquetas HTML (XSS)
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value.replace(/<[^>]*>?/gm, '') }));
     setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
+  // Motor de validación del lado del cliente antes de enviar la petición de red
   const validar = () => {
+    // Solo exige password si el usuario decide cambiarlo.
     let errores = {};
     const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}(\s[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,})+$/;
     if (!form.nombre || !nombreRegex.test(form.nombre.trim()))
@@ -35,6 +43,7 @@ const EditarCuenta = ({ usuario, onActualizar }) => {
   };
 
   const handleSubmit = async (e) => {
+    // Envia un PATCH parcial; los campos vacios no reemplazan datos existentes.
     e.preventDefault();
     if (!validar()) return;
     setLoading(true);

@@ -1,3 +1,8 @@
+/*
+ * Mascotas visibles para tutores y administradores.
+ * Permite registrar pacientes, consultar historial relacionado y subir o
+ * eliminar cartillas PDF.
+ */
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
@@ -19,16 +24,17 @@ const MisMascotas = ({ usuario, isAdmin }) => {
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
 
-  // Modal historial
+  // Estado del modal de historial.
   const [modalHistorial, setModalHistorial] = useState(null);
   const [historial, setHistorial] = useState([]);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
 
-  // Modal cartilla
+  // Estado del modal de cartilla.
   const [modalCartilla, setModalCartilla] = useState(null);
   const [subiendoCartilla, setSubiendoCartilla] = useState(false);
 
   const cargarMascotas = useCallback(async () => {
+    // Admin consulta todo; tutor resuelve primero su Cliente y despues sus pacientes.
     try {
       if (isAdmin) {
         const res = await fetch('http://localhost:8000/api/v1/pacientes/');
@@ -102,7 +108,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
     } catch { setErrForm('Error al conectar con el servidor'); }
   };
 
-  // ─── Historial ────────────────────────────────────────────────────────────
+  // Consulta el historial clinico de una mascota.
   const verHistorial = async (mascota) => {
     setModalHistorial(mascota);
     setLoadingHistorial(true);
@@ -116,7 +122,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
     finally { setLoadingHistorial(false); }
   };
 
-  // ─── Cartilla ─────────────────────────────────────────────────────────────
+  // Gestiona la cartilla PDF de una mascota.
   const handleSubirCartilla = async (mascota, archivo) => {
     if (!archivo) return;
     if (!archivo.name.toLowerCase().endsWith('.pdf')) { alert('Solo se permiten archivos PDF'); return; }
@@ -181,7 +187,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
         </button>
       </header>
 
-      {/* ── Formulario nueva mascota ── */}
+      {/* Formulario para nueva mascota */}
       {mostrarForm && (
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
           <h3 style={{ marginBottom: '16px', color: '#1e293b' }}>Nueva Mascota</h3>
@@ -236,7 +242,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
         </div>
       )}
 
-      {/* ── Modal historial clínico ── */}
+      {/* Modal de historial clinico */}
       {modalHistorial && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
@@ -294,7 +300,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
         </div>
       )}
 
-      {/* ── Modal cartilla de vacunación ── */}
+      {/* Modal de cartilla de vacunacion */}
       {modalCartilla && (
         <div style={styles.overlay}>
           <div style={{ ...styles.modal, maxWidth: '480px' }}>
@@ -343,7 +349,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
         </div>
       )}
 
-      {/* ── Tabla ── */}
+      {/* Tabla de mascotas */}
       <ListingControls
         search={busqueda}
         onSearchChange={setBusqueda}

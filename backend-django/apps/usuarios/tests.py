@@ -1,3 +1,5 @@
-from django.test import TestCase
+"""Pruebas del modulo usuarios.
 
-# Create your tests here.
+Archivo reservado para login, registro, roles, reset password y auditoria.
+"""
+from django.test import TestCase

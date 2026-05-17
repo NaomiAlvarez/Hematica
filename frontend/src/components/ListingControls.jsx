@@ -1,3 +1,8 @@
+/*
+ * Controles reutilizables para busqueda, paginacion y tamano de pagina.
+ * Las paginas le pasan los totales ya filtrados para mantener este componente
+ * independiente de la fuente de datos.
+ */
 import React from 'react';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
@@ -12,6 +17,7 @@ export const getTotalPages = (totalItems, pageSize) => (
 );
 
 export const normalizeText = (value) => (
+  // Quita acentos para que las busquedas sean tolerantes a escritura simple.
   String(value ?? '')
     .toLowerCase()
     .normalize('NFD')

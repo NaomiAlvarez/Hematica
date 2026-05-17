@@ -1,3 +1,8 @@
+/*
+ * Dashboard administrativo.
+ * Reune datos de solicitudes, estudios, resultados, pacientes y auditoria para
+ * construir KPIs y graficas locales con ECharts.
+ */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as echarts from 'echarts/core';
 import { BarChart, LineChart, PieChart } from 'echarts/charts';
@@ -9,8 +14,10 @@ import {
 import { CanvasRenderer } from 'echarts/renderers';
 import './Dashboard.css';
 
+// Configura la ruta raíz para consumir las colecciones de datos desde Django
 const API = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
 
+// Inicializa las funciones esenciales de ECharts que se van a renderizar
 echarts.use([
   BarChart,
   LineChart,
@@ -21,6 +28,7 @@ echarts.use([
   CanvasRenderer,
 ]);
 
+// Diccionarios estáticos para homogeneizar los textos y colores que se verán en las gráficas
 const ESTADO_LABELS = {
   pendiente: 'Pendiente',
   muestra_recibida: 'Muestra recibida',
@@ -43,12 +51,15 @@ const ESTADO_COLORS = {
 
 const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
+// Módulo utilitario de consumo HTTP con control de excepciones unificado
 const fetchJson = async (path) => {
+  // Helper unico para que todas las tarjetas fallen con el mismo formato.
   const res = await fetch(`${API}${path}`);
   if (!res.ok) throw new Error(`No se pudo cargar ${path}`);
   return res.json();
 };
 
+// Formateadores y conversores seguros para evitar fallos visuales por datos nulos o corruptos
 const toNumber = (value) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -68,10 +79,12 @@ const formatDate = (value) => {
   return date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
+// Componente Wrapper genérico encargado de gestionar el ciclo de vida y redimensionamiento de cada gráfico
 const EChart = ({ option, height = 320 }) => {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
 
+  // Instancia el lienzo gráfico de ECharts y lo vincula a un observador de tamaño de pantalla
   useEffect(() => {
     if (!containerRef.current) return undefined;
 
@@ -85,6 +98,7 @@ const EChart = ({ option, height = 320 }) => {
     if (observer) observer.observe(containerRef.current);
     window.addEventListener('resize', resize);
 
+    // Desvincula eventos y destruye la instancia gráfica cuando el componente se desmonta para liberar memoria
     return () => {
       observer?.disconnect();
       window.removeEventListener('resize', resize);
@@ -93,6 +107,7 @@ const EChart = ({ option, height = 320 }) => {
     };
   }, []);
 
+  // Actualiza los conjuntos de datos en la gráfica cada vez que cambien las métricas calculadas
   useEffect(() => {
     if (chartRef.current) {
       chartRef.current.setOption(option, true);
@@ -102,6 +117,7 @@ const EChart = ({ option, height = 320 }) => {
   return <div className="dashboard-chart" ref={containerRef} style={{ height }} />;
 };
 
+// Componentes estructurales puros para mantener una interfaz limpia y modularizada
 const KpiCard = ({ label, value, detail, tone }) => (
   <article className={`kpi-card kpi-${tone}`}>
     <span>{label}</span>
@@ -123,6 +139,7 @@ const ChartCard = ({ title, subtitle, children }) => (
 );
 
 const Dashboard = () => {
+  // Estado que agrupa los arrays originales devueltos por la base de datos
   const [data, setData] = useState({
     solicitudes: [],
     solicitudEstudios: [],
@@ -133,6 +150,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Efecto asincrónico: Ejecuta las consultas de red en paralelo para reducir drásticamente los tiempos de carga
   useEffect(() => {
     let activo = true;
 
@@ -164,10 +182,12 @@ const Dashboard = () => {
     };
   }, []);
 
+  // Núcleo analítico del Dashboard: Procesa los datos crudos y los transforma en estadísticas de rendimiento
   const metricas = useMemo(() => {
     const { solicitudes, solicitudEstudios, estudios, resultados, pacientes } = data;
     const estudiosPorId = new Map(estudios.map((est) => [String(est.id_catalogo), est]));
 
+    // Algoritmo de cruce: Calcula el precio real sumando los precios del catálogo asignados a cada solicitud
     const costoSolicitud = (idSolicitud) => solicitudEstudios
       .filter((item) => String(item.id_solicitud) === String(idSolicitud))
       .reduce((total, item) => {
@@ -175,24 +195,29 @@ const Dashboard = () => {
         return total + toNumber(estudio?.precio ?? item.precio);
       }, 0);
 
+    // Distribuye cuantitativamente cuántas solicitudes corresponden a cada estado del flujo de trabajo
     const porEstado = solicitudes.reduce((acc, solicitud) => {
       acc[solicitud.estado] = (acc[solicitud.estado] || 0) + 1;
       return acc;
     }, {});
 
+    // Sumatoria financiera para proyectar los ingresos potenciales globales
     const ingresosEstimados = solicitudes.reduce(
       (total, solicitud) => total + costoSolicitud(solicitud.id_solicitud),
       0
     );
 
+    // Sumatoria financiera de dinero real ya cobrado (solo órdenes completadas)
     const ingresosFinalizados = solicitudes
       .filter((solicitud) => solicitud.estado === 'finalizado')
       .reduce((total, solicitud) => total + costoSolicitud(solicitud.id_solicitud), 0);
 
+    // Filtra las solicitudes que están actualmente en proceso dentro del laboratorio
     const solicitudesActivas = solicitudes.filter(
       (solicitud) => !['finalizado', 'cancelado', 'rechazado'].includes(solicitud.estado)
     ).length;
 
+    // Agrupa y totaliza la demanda de estudios para identificar patrones comerciales
     const estudiosSolicitados = solicitudEstudios.reduce((acc, item) => {
       const key = String(item.id_catalogo);
       const estudio = estudiosPorId.get(key);
@@ -204,6 +229,7 @@ const Dashboard = () => {
       return acc;
     }, {});
 
+    // Extrae de forma ordenada los 7 estudios más comunes y los 6 más rentables
     const topEstudios = Object.values(estudiosSolicitados)
       .sort((a, b) => b.total - a.total)
       .slice(0, 7);
@@ -212,6 +238,7 @@ const Dashboard = () => {
       .sort((a, b) => b.ingreso - a.ingreso)
       .slice(0, 6);
 
+    // Estructura dinámicamente un historial de tendencias para los últimos seis meses
     const mesActual = new Date();
     const meses = Array.from({ length: 6 }, (_, index) => {
       const date = new Date(mesActual.getFullYear(), mesActual.getMonth() - (5 - index), 1);
@@ -230,6 +257,7 @@ const Dashboard = () => {
       if (mesesPorKey.has(key)) mesesPorKey.get(key).total += 1;
     });
 
+    // Cuantifica la carga operativa delegada a cada veterinario de la plataforma
     const cargaVeterinarios = resultados.reduce((acc, resultado) => {
       const nombre = resultado.veterinario_nombre || 'Sin asignar';
       acc[nombre] = (acc[nombre] || 0) + 1;
@@ -241,6 +269,7 @@ const Dashboard = () => {
       .sort((a, b) => b.total - a.total)
       .slice(0, 6);
 
+      // Obtiene una lista rápida con las últimas 6 solicitudes registradas para la sección de auditoría visual
     const recientes = [...solicitudes]
       .sort((a, b) => new Date(b.fecha_solicitud) - new Date(a.fecha_solicitud))
       .slice(0, 6)
@@ -265,6 +294,7 @@ const Dashboard = () => {
     };
   }, [data]);
 
+  // Configuraciones de renderizado de ECharts mapeadas usando useMemo para prevenir parpadeos en pantalla
   const estadosOption = useMemo(() => ({
     color: Object.values(ESTADO_COLORS),
     tooltip: {
@@ -378,6 +408,7 @@ const Dashboard = () => {
     ],
   }), [metricas.ingresosPorEstudio]);
 
+  // Vistas de contingencia para controlar excepciones de red o estados de carga pesada
   if (loading) {
     return (
       <div className="dashboard-page">

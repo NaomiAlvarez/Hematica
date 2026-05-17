@@ -1,4 +1,9 @@
 // Estudios.jsx
+/*
+ * Catalogo de estudios.
+ * Usuarios autenticados pueden consultar precios; administradores tambien
+ * pueden crear, editar y eliminar estudios.
+ */
 import React, { useMemo, useState, useEffect } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
@@ -21,6 +26,7 @@ const Estudios = ({ userRole }) => {
   const sanitizar = (valor) => valor.replace(/<[^>]*>?/gm, '');
 
   const cargarEstudios = async () => {
+    // Lista el catalogo que usan solicitudes y resultados.
     setLoading(true);
     try {
       const res = await fetch('http://localhost:8000/api/v1/estudios/');
@@ -43,6 +49,7 @@ const Estudios = ({ userRole }) => {
 
   // Validación completa del formulario
   const validarForm = () => {
+    // Valida en cliente para dar feedback rapido antes del POST/PATCH.
     let errores = {};
 
     // Nombre: obligatorio, 3-100 caracteres, solo letras números y espacios
@@ -69,6 +76,7 @@ const Estudios = ({ userRole }) => {
   };
 
   const handleSubmit = async (e) => {
+    // Reutiliza el mismo formulario para crear y editar segun `editando`.
     e.preventDefault();
     const errores = validarForm();
     if (Object.keys(errores).length > 0) { setErrForm(errores); return; }
@@ -119,6 +127,7 @@ const Estudios = ({ userRole }) => {
   };
 
   const estudiosFiltrados = useMemo(() => {
+    // Busqueda local; el catalogo suele ser pequeno y no requiere query al servidor.
     const texto = normalizeText(busqueda);
     if (!texto) return estudios;
 

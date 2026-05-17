@@ -1,23 +1,20 @@
-# Dockerfile para el backend Django de Hemática
-# Construye la imagen del servidor Django que corre dentro de Docker
+# Imagen del backend Django de Hematica.
+# Se usa para levantar la API dentro de Docker Compose.
 
-# Imagen base: Python 3.12 en versión slim (más ligera, sin herramientas innecesarias)
+# Imagen base ligera para desarrollo.
 FROM python:3.12-slim
 
-# Directorio de trabajo dentro del contenedor
-# Todo el código del proyecto se copia aquí
+# Directorio donde vive el codigo dentro del contenedor.
 WORKDIR /app
 
-# Copiar primero solo el requirements.txt para aprovechar el caché de Docker
-# Si el requirements.txt no cambia, Docker no reinstala las dependencias
+# Copiar dependencias primero permite reutilizar la cache de Docker.
 COPY requirements.txt .
 
-# Instalar las dependencias de Python definidas en requirements.txt
+# Instala las dependencias del backend.
 RUN pip install -r requirements.txt
 
-# Copiar el resto del código del proyecto al contenedor
+# Copia el codigo de la aplicacion.
 COPY . .
 
-# Comando que se ejecuta cuando el contenedor arranca
-# Levanta el servidor Django en el puerto 8000 accesible desde cualquier IP
+# Servidor de desarrollo expuesto para el servicio django.
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

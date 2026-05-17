@@ -1,3 +1,5 @@
-from django.contrib import admin
+"""Configuracion del modulo estudios para el panel admin de Django.
 
-# Register your models here.
+El catalogo de estudios se administra principalmente desde la pantalla React.
+"""
+from django.contrib import admin

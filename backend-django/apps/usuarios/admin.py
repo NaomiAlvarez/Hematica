@@ -1,3 +1,4 @@
+"""Modelos visibles desde el panel admin de Django para soporte tecnico."""
 from django.contrib import admin
 
 from .models import Auditoria, Notificacion, PasswordResetToken, TipoUsuario, Usuario

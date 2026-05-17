@@ -1,3 +1,5 @@
-from django.contrib import admin
+"""Configuracion del modulo pacientes para el panel admin de Django.
 
-# Register your models here.
+Los pacientes, clientes, especies y razas se operan desde endpoints REST.
+"""
+from django.contrib import admin

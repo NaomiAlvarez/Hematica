@@ -1,3 +1,5 @@
-from django.test import TestCase
+"""Pruebas del modulo solicitudes.
 
-# Create your tests here.
+Archivo reservado para flujo de solicitud, estados, resultados e historial.
+"""
+from django.test import TestCase

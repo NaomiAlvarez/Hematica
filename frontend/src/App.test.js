@@ -1,3 +1,5 @@
+// Prueba base generada por Create React App.
+// Debe actualizarse cuando exista una prueba real de rutas o login.
 import { render, screen } from '@testing-library/react';
 import App from './App';
 

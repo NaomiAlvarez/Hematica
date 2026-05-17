@@ -1,13 +1,14 @@
-/* Limpieza total del fondo */
+/* Estilos heredados de la raiz de React; la mayoria de pantallas usan Pages.css. */
+/* Fondo base de la aplicacion. */
 .App {
-  background-color: #000000; /* Fondo negro profundo */
+  background-color: #000000; /* Fondo oscuro base. */
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  overflow-x: hidden; /* Evita que la página se mueva de lado */
+  overflow-x: hidden; /* Evita desplazamiento horizontal accidental. */
 }
 
-/* Esto asegura que si usas el header de React, se vea bien */
+/* Contenedor centrado para pantallas basicas. */
 .App-header {
   min-height: 100vh;
   display: flex;
@@ -17,7 +18,7 @@
   color: white;
 }
 
-/* Reset de márgenes para que no queden espacios blancos en las orillas */
+/* Reset global de caja y margenes. */
 * {
   box-sizing: border-box;
   margin: 0;

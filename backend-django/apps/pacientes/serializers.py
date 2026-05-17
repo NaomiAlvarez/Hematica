@@ -9,12 +9,14 @@ from .models import Especie, Raza, Cliente, Paciente
 
 
 class EspecieSerializer(serializers.ModelSerializer):
+    """Respuesta compacta para catalogo de especies."""
     class Meta:
         model = Especie
         fields = ['id_especie', 'nombre']
 
 
 class RazaSerializer(serializers.ModelSerializer):
+    """Incluye el nombre de especie para tablas y filtros del frontend."""
     especie_nombre = serializers.CharField(source='id_especie.nombre', read_only=True)
 
     class Meta:
@@ -23,6 +25,7 @@ class RazaSerializer(serializers.ModelSerializer):
 
 
 class ClienteSerializer(serializers.ModelSerializer):
+    """Aplana nombre y correo del Usuario asociado al Cliente."""
     nombre = serializers.CharField(source='id_usuario.nombre', read_only=True)
     correo = serializers.CharField(source='id_usuario.correo', read_only=True)
 
@@ -32,6 +35,7 @@ class ClienteSerializer(serializers.ModelSerializer):
 
 
 class PacienteSerializer(serializers.ModelSerializer):
+    """Expone mascota con datos legibles de especie, raza y dueno."""
     especie_nombre = serializers.CharField(source='id_raza.id_especie.nombre', read_only=True)
     raza_nombre = serializers.CharField(source='id_raza.nombre', read_only=True)
     dueno = serializers.CharField(source='id_cliente.id_usuario.nombre', read_only=True)

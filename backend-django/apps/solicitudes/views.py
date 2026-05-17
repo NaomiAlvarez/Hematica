@@ -1,3 +1,9 @@
+"""ViewSets para solicitudes y estudios solicitados.
+
+Esta es la logica del flujo operativo: crear solicitudes, agregar estudios,
+cambiar estados, notificar al tutor y generar reportes simples para dashboard.
+"""
+
 from django.db.models import Count
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -30,9 +36,11 @@ ESTADOS_VALIDOS = [
 
 
 class SolicitudViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
+    """CRUD de solicitudes con permisos y filtros por rol."""
     serializer_class = SolicitudSerializer
 
     def get_queryset(self):
+        """Devuelve solicitudes visibles y aplica filtros de estado/paciente."""
         queryset = Solicitud.objects.select_related(
             'id_paciente__id_cliente__id_usuario',
             'id_paciente__id_raza__id_especie',
@@ -50,6 +58,7 @@ class SolicitudViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        """Crea una solicitud y avisa a administradores que hay trabajo pendiente."""
         paciente = serializer.validated_data.get('id_paciente')
         if not user_can_access_paciente(self.usuario_actual, paciente):
             raise PermissionDenied('No puedes crear solicitudes para este paciente')
@@ -63,6 +72,7 @@ class SolicitudViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
         )
 
     def perform_update(self, serializer):
+        """Permite edicion segun rol y estado actual de la solicitud."""
         instance = self.get_object()
         if not is_admin(self.usuario_actual) and not is_veterinario(self.usuario_actual):
             if instance.estado != 'pendiente':
@@ -78,6 +88,7 @@ class SolicitudViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['patch'])
     def cambiar_estado(self, request, pk=None):
+        """Transiciona la solicitud a un estado valido y notifica al tutor."""
         if not is_admin(self.usuario_actual) and not is_veterinario(self.usuario_actual):
             return Response({'error': 'No tienes permisos para cambiar estados'}, status=403)
 
@@ -110,14 +121,17 @@ class SolicitudViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def reporte_por_estado(self, request):
+        """Agrupa solicitudes por estado para graficas administrativas."""
         reporte = self.get_queryset().values('estado').annotate(total=Count('id_solicitud'))
         return Response(list(reporte))
 
 
 class SolicitudEstudioViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
+    """Gestiona los estudios individuales que pertenecen a una solicitud."""
     serializer_class = SolicitudEstudioSerializer
 
     def get_queryset(self):
+        """Filtra estudios solicitados por alcance del usuario y por solicitud."""
         queryset = SolicitudEstudio.objects.select_related(
             'id_solicitud__id_paciente__id_cliente__id_usuario',
             'id_catalogo',
@@ -132,6 +146,7 @@ class SolicitudEstudioViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        """Agrega un estudio solo si el usuario puede acceder al paciente."""
         solicitud = serializer.validated_data.get('id_solicitud')
         if not user_can_access_paciente(self.usuario_actual, solicitud.id_paciente):
             raise PermissionDenied('No puedes modificar esta solicitud')

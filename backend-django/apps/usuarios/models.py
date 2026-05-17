@@ -70,6 +70,7 @@ class Usuario(models.Model):
 
 
 class Auditoria(models.Model):
+    """Bitacora de acciones relevantes realizadas por usuarios o sistema."""
     id_auditoria = models.AutoField(primary_key=True)
     actor = models.ForeignKey(
         Usuario,
@@ -96,6 +97,7 @@ class Auditoria(models.Model):
 
 
 class Notificacion(models.Model):
+    """Aviso interno visible desde la barra de navegacion del frontend."""
     id_notificacion = models.AutoField(primary_key=True)
     usuario = models.ForeignKey(
         Usuario,
@@ -119,6 +121,7 @@ class Notificacion(models.Model):
 
 
 class PasswordResetToken(models.Model):
+    """Token temporal para recuperar contrasena por correo."""
     id_reset = models.AutoField(primary_key=True)
     usuario = models.ForeignKey(
         Usuario,
@@ -137,6 +140,7 @@ class PasswordResetToken(models.Model):
 
     @classmethod
     def create_for_user(cls, usuario):
+        """Crea un token de un solo uso con una hora de vigencia."""
         return cls.objects.create(
             usuario=usuario,
             token=secrets.token_urlsafe(48),
@@ -145,8 +149,10 @@ class PasswordResetToken(models.Model):
 
     @property
     def valido(self):
+        """Indica si el token sigue vigente y no ha sido usado."""
         return self.usado_en is None and self.expira_en >= timezone.now()
 
     def marcar_usado(self):
+        """Marca el token como consumido para impedir reutilizacion."""
         self.usado_en = timezone.now()
         self.save(update_fields=['usado_en'])

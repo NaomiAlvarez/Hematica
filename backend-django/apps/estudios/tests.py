@@ -1,3 +1,5 @@
-from django.test import TestCase
+"""Pruebas del modulo estudios.
 
-# Create your tests here.
+Archivo reservado para validar lectura del catalogo y escrituras de admin.
+"""
+from django.test import TestCase

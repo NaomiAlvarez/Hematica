@@ -1,4 +1,4 @@
-/* --- CONFIGURACIÓN GENERAL DEL NAVBAR (MODO CLARO) --- */
+/* Configuracion general del navbar. */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -36,7 +36,7 @@
   text-transform: uppercase;
 }
 
-/* --- ENLACES DE NAVEGACIÓN --- */
+/* Enlaces de navegacion. */
 .nav-links {
   display: flex;
   align-items: center;
@@ -56,7 +56,7 @@
 
 /* Color especial para resaltar "MIS MASCOTAS" o "PACIENTES" */
 .nav-item:first-child {
-  color: #1e293b; /* Un poco más oscuro para dar prioridad */
+  color: #1e293b; /* Prioriza el enlace destacado. */
 }
 
 .nav-item:hover {
@@ -177,7 +177,7 @@
   line-height: 1.35;
 }
 
-/* --- BOTÓN SALIR (ESTILO PÍLDORA) --- */
+/* Boton de salida. */
 .btn-logout-bottom-left {
   position: fixed;
   bottom: 30px;
@@ -206,7 +206,7 @@
   transform: translateX(5px);
 }
 
-/* --- BOTÓN AGREGAR (EL QUE USAREMOS EN MIS MASCOTAS / PACIENTES) --- */
+/* Boton principal para agregar registros. */
 .btn-add-boutique {
   background-color: rgba(37, 99, 235, 0.3);
   color: white;

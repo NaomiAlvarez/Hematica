@@ -1,3 +1,6 @@
-from django.contrib import admin
+"""Configuracion del modulo empleados para el panel admin de Django.
 
-# Register your models here.
+Actualmente no registra modelos personalizados aqui; el CRUD operativo se hace
+desde la API y el frontend administrativo.
+"""
+from django.contrib import admin

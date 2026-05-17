@@ -7,6 +7,7 @@ from .models import Solicitud, SolicitudEstudio
 
 
 class SolicitudSerializer(serializers.ModelSerializer):
+    """Expone la solicitud junto con nombres calculados para tablas del frontend."""
     paciente_nombre = serializers.CharField(
         source='id_paciente.nombre', read_only=True
     )
@@ -27,6 +28,7 @@ class SolicitudSerializer(serializers.ModelSerializer):
 
 
 class SolicitudEstudioSerializer(serializers.ModelSerializer):
+    """Representa cada estudio elegido dentro de una solicitud."""
     estudio_nombre = serializers.CharField(
         source='id_catalogo.nombre', read_only=True
     )

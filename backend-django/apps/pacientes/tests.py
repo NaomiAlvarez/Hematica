@@ -1,3 +1,5 @@
-from django.test import TestCase
+"""Pruebas del modulo pacientes.
 
-# Create your tests here.
+Archivo reservado para permisos por rol, filtros y carga de cartilla PDF.
+"""
+from django.test import TestCase

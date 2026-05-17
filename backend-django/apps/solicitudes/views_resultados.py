@@ -1,3 +1,10 @@
+"""ViewSets de resultados e historial clinico.
+
+Aqui se completa la solicitud: se registra el resultado, se marca la solicitud
+como resultado_cargado, se crea una entrada inicial de historial y se gestiona
+el PDF clinico.
+"""
+
 from django.db.models import Count
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -20,10 +27,12 @@ from .serializers_resultados import HistorialClinicoSerializer, ResultadoEstudio
 
 
 class ResultadoEstudioViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
+    """CRUD de resultados, incluyendo carga/eliminacion de PDF."""
     serializer_class = ResultadoEstudioSerializer
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
+        """Lista resultados visibles segun el alcance de clientes del usuario."""
         queryset = ResultadoEstudio.objects.select_related(
             'id_solicitud__id_paciente__id_cliente__id_usuario',
             'id_vet__id_emp__id_usuario',
@@ -34,6 +43,7 @@ class ResultadoEstudioViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        """Crea resultado, actualiza estado de solicitud y notifica al tutor."""
         if not is_admin(self.usuario_actual) and not is_veterinario(self.usuario_actual):
             raise PermissionDenied('No tienes permisos para crear resultados')
         solicitud = serializer.validated_data.get('id_solicitud')
@@ -72,6 +82,7 @@ class ResultadoEstudioViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['patch'], parser_classes=[MultiPartParser, FormParser])
     def subir_pdf(self, request, pk=None):
+        """Valida y guarda el PDF de resultado clinico."""
         if not is_admin(self.usuario_actual) and not is_veterinario(self.usuario_actual):
             return Response({'error': 'No tienes permisos para subir resultados'}, status=403)
         resultado = self.get_object()
@@ -93,6 +104,7 @@ class ResultadoEstudioViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['patch'])
     def eliminar_pdf(self, request, pk=None):
+        """Permite al administrador retirar un PDF de resultado."""
         if not is_admin(self.usuario_actual):
             return Response({'error': 'Solo un administrador puede eliminar PDFs'}, status=403)
         resultado = self.get_object()
@@ -105,9 +117,11 @@ class ResultadoEstudioViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
 
 
 class HistorialClinicoViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
+    """CRUD del expediente clinico acumulado por paciente."""
     serializer_class = HistorialClinicoSerializer
 
     def get_queryset(self):
+        """Filtra historial por alcance de datos y por paciente opcional."""
         queryset = HistorialClinico.objects.select_related(
             'id_paciente__id_cliente__id_usuario',
             'id_paciente__id_raza__id_especie',
@@ -142,6 +156,7 @@ class HistorialClinicoViewSet(AuthenticatedViewSetMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def reporte_por_paciente(self, request):
+        """Agrupa entradas de historial por paciente para reportes."""
         reporte = self.get_queryset().values(
             'id_paciente__nombre'
         ).annotate(total_estudios=Count('id_exp'))
