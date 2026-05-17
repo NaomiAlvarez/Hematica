@@ -23,11 +23,13 @@ const Usuarios = () => {
   const [error, setError] = useState('');
 
   const obtenerHeaders = () => ({
+    // Aunque index.js agrega token, aqui se deja explicito por ser pantalla admin.
     'Content-Type': 'application/json',
     Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
   });
 
   const cargarDatos = useCallback(async () => {
+    // Carga usuarios y roles en paralelo para armar la tabla editable.
     setLoading(true);
     setError('');
     setMensaje('');
@@ -66,6 +68,7 @@ const Usuarios = () => {
   }, [cargarDatos]);
 
   const usuariosFiltrados = useMemo(() => {
+    // Normaliza texto para buscar por nombre, correo, telefono o rol.
     const texto = normalizeText(busqueda.trim());
 
     return usuarios.filter((usuario) => {
@@ -94,6 +97,7 @@ const Usuarios = () => {
   };
 
   const guardarRol = async (usuario) => {
+    // Solo envia PATCH cuando el rol seleccionado realmente cambio.
     const rolSeleccionado = rolesSeleccionados[usuario.id_usuario];
     if (!rolSeleccionado || String(usuario.id_tipo_usuario) === rolSeleccionado) return;
 

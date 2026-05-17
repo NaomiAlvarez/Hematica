@@ -1,3 +1,5 @@
+// Servidor estatico minimo para previsualizar `npm run build`.
+// Cualquier ruta desconocida devuelve index.html para que React Router funcione.
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -20,6 +22,7 @@ const contentTypes = {
 };
 
 const sendFile = (res, filePath) => {
+  // Lee archivos del build y asigna Content-Type segun extension.
   fs.readFile(filePath, (error, content) => {
     if (error) {
       res.writeHead(500);
@@ -39,6 +42,7 @@ http
     const cleanUrl = decodeURIComponent(req.url.split('?')[0]);
     let filePath = path.join(root, cleanUrl === '/' ? 'index.html' : cleanUrl);
 
+    // Evita que una URL con ../ salga de la carpeta build.
     if (!filePath.startsWith(root)) {
       res.writeHead(403);
       res.end('Forbidden');

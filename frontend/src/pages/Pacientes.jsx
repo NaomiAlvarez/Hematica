@@ -15,6 +15,7 @@ const Pacientes = () => {
   const [porPagina, setPorPagina] = useState(10);
 
   useEffect(() => {
+    // Vista de solo lectura: trae todos los pacientes permitidos para admin.
     const obtenerPacientes = async () => {
       try {
         const respuesta = await fetch('http://localhost:8000/api/v1/pacientes/');
@@ -33,10 +34,12 @@ const Pacientes = () => {
   }, []);
 
   const especiesDisponibles = useMemo(() => (
+    // Deriva opciones de filtro desde los pacientes cargados.
     [...new Set(pacientes.map((p) => p.especie_nombre).filter(Boolean))]
   ), [pacientes]);
 
   const pacientesFiltrados = useMemo(() => {
+    // Filtra por texto y especie antes de paginar.
     const texto = normalizeText(busqueda);
     return pacientes.filter((paci) => {
       const coincideTexto = !texto || normalizeText(

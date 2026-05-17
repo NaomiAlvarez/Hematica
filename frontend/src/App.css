@@ -1,3 +1,4 @@
+/* Estilos heredados de la raiz de React; la mayoria de pantallas usan Pages.css. */
 /* Fondo base de la aplicacion. */
 .App {
   background-color: #000000; /* Fondo oscuro base. */

@@ -13,6 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def load_env_file(path):
+    """Carga variables desde un archivo .env sin reemplazar variables existentes."""
     if not path.exists():
         return
     for raw_line in path.read_text(encoding='utf-8').splitlines():
@@ -24,6 +25,7 @@ def load_env_file(path):
 
 
 def env_bool(name, default=False):
+    """Lee variables booleanas escritas como true/false, 1/0, yes/no u on/off."""
     value = os.environ.get(name)
     if value is None:
         return default
@@ -31,6 +33,7 @@ def env_bool(name, default=False):
 
 
 def env_list(name, default=''):
+    """Convierte variables separadas por coma en listas limpias de strings."""
     value = os.environ.get(name, default)
     return [item.strip() for item in value.split(',') if item.strip()]
 
@@ -143,11 +146,13 @@ USE_TZ = True
 CORS_ALLOW_ALL_ORIGINS = env_bool('CORS_ALLOW_ALL_ORIGINS', DEBUG)
 CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS')
 
+# Archivos subidos por usuarios: cartillas y PDFs de resultados.
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = 'static/'
 
 from datetime import timedelta
+# Vida de tokens usada por el login propio de `apps.usuarios.views.LoginView`.
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -156,6 +161,7 @@ SIMPLE_JWT = {
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@hematica.local')
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
+# En desarrollo se imprimen correos en consola; en produccion puede usarse SMTP.
 EMAIL_BACKEND = os.environ.get(
     'EMAIL_BACKEND',
     'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'

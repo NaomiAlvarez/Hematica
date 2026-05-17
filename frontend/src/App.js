@@ -23,9 +23,11 @@ import ResetPassword from './pages/ResetPassword';
 
 import './pages/Pages.css';
 
+// Configura la URL base de la API usando variables de entorno o el localhost por defecto
 const API = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
 
-// Traduce la descripcion del backend al rol que usa el frontend para proteger rutas.
+// Función que limpia y estandariza el rol que manda el Backend (Django) 
+// para que el Frontend de React pueda usarlo fácilmente ('admin', 'veterinario', 'usuario').
 const getRoleFromUsuario = (userData) => {
   const descripcion = (userData?.tipo_usuario?.descripcion || '').toLowerCase();
   if (descripcion === 'administrador' || descripcion === 'admin') return 'admin';
@@ -34,18 +36,21 @@ const getRoleFromUsuario = (userData) => {
 };
 
 function App() {
+  // Estados globales para controlar el flujo de la sesión en la aplicación
   const [isLogged, setIsLogged] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [usuario, setUsuario] = useState(null);
   const [checkingSession, setCheckingSession] = useState(true);
 
+  // Efecto inicial para comprobar si existe una sesión previa guardada en el navegador
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      setCheckingSession(false);
+      setCheckingSession(false); // Si no hay token, se cancela la carga y se asume que no está logueado
       return;
     }
 
+    // Si encuentra un token, le consulta al backend si las credenciales siguen vigentes
     const reconstruirSesion = async () => {
       try {
         const res = await fetch(`${API}/auth/me/`);
@@ -56,6 +61,7 @@ function App() {
         setUsuario(userData);
         localStorage.setItem('userData', JSON.stringify(userData));
       } catch {
+        // Si el token expiró o la sesión no es válida, limpia el almacenamiento por seguridad
         localStorage.removeItem('token');
         localStorage.removeItem('refresh');
         localStorage.removeItem('userData');
@@ -67,12 +73,14 @@ function App() {
     reconstruirSesion();
   }, []);
 
+  // Maneja el estado interno cuando un usuario inicia sesión correctamente
   const handleLogin = (role, userData) => {
     setIsLogged(true);
     setUserRole(role);
     setUsuario(userData);
   };
 
+  // Remueve las credenciales y limpia los estados globales al cerrar sesión
   const handleLogout = () => {
     setIsLogged(false);
     setUserRole(null);
@@ -83,14 +91,17 @@ function App() {
     localStorage.removeItem('userData');
   };
 
+  // Permite actualizar los datos del usuario en tiempo real desde la edición de cuenta
   const handleActualizarUsuario = (nuevosDatos) => {
     setUsuario(nuevosDatos);
   };
 
+  // Variables booleanas para simplificar la validación de permisos en el enrutador
   const isAdmin = userRole === 'admin';
   const isVeterinario = userRole === 'veterinario';
   const isUsuario = userRole === 'usuario';
 
+  // Si está validando los datos del usuario al recargar la página, detiene el renderizado con una pantalla de espera
   if (checkingSession) {
     return <div className="loading-state">Restaurando sesion...</div>;
   }

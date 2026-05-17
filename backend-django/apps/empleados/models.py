@@ -9,6 +9,7 @@ from apps.usuarios.models import Usuario
 
 
 class TipoEmpleado(models.Model):
+    """Catalogo de puestos laborales dentro del laboratorio."""
     id_tipo_emp = models.AutoField(primary_key=True)
     puesto = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=100)
@@ -21,6 +22,7 @@ class TipoEmpleado(models.Model):
 
 
 class Empleado(models.Model):
+    """Datos laborales de un Usuario que trabaja con el laboratorio."""
     id_emp = models.AutoField(primary_key=True)
     id_usuario = models.OneToOneField(
         Usuario, on_delete=models.PROTECT, db_column='id_usuario'
@@ -40,6 +42,7 @@ class Empleado(models.Model):
 
 
 class Veterinario(models.Model):
+    """Perfil profesional de un empleado veterinario con CURP y cedula."""
     id_vet = models.AutoField(primary_key=True)
     id_emp = models.OneToOneField(
         Empleado, on_delete=models.PROTECT, db_column='id_emp'

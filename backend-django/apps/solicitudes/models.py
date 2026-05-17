@@ -13,6 +13,7 @@ from apps.empleados.models import Veterinario
 
 
 class Solicitud(models.Model):
+    """Pedido principal de estudios para un paciente."""
     ESTADOS = [
         ('pendiente', 'Pendiente'),
         ('en_proceso', 'En proceso'),
@@ -59,6 +60,7 @@ class Solicitud(models.Model):
 
 
 class SolicitudEstudio(models.Model):
+    """Estudio individual incluido dentro de una solicitud."""
     id_solicitud = models.ForeignKey(
         Solicitud,
         on_delete=models.PROTECT,
@@ -80,6 +82,7 @@ class SolicitudEstudio(models.Model):
 
 
 class ResultadoEstudio(models.Model):
+    """Resultado clinico generado para una solicitud ya procesada."""
     id_resultado = models.AutoField(primary_key=True)
     id_solicitud = models.OneToOneField(
         Solicitud,
@@ -120,6 +123,7 @@ class ResultadoEstudio(models.Model):
 
 
 class HistorialClinico(models.Model):
+    """Entrada del expediente clinico acumulado de un paciente."""
     id_exp = models.AutoField(primary_key=True)
     id_paciente = models.ForeignKey(
         Paciente,

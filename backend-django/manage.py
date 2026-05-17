@@ -1,11 +1,15 @@
 #!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
+"""CLI de Django para tareas administrativas del backend Hematica.
+
+Se usa para migraciones, pruebas, creacion de superusuario y cualquier comando
+de `manage.py` ejecutado dentro o fuera de Docker.
+"""
 import os
 import sys
 
 
 def main():
-    """Run administrative tasks."""
+    """Configura el settings module y delega el comando a Django."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hematica_project.settings')
     try:
         from django.core.management import execute_from_command_line

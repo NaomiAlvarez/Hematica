@@ -24,6 +24,7 @@ const Login = ({ onLogin }) => {
   });
 
   const handleChange = (e) => {
+    // Sanitiza HTML simple para evitar que se escriban etiquetas en inputs.
     const { name, value } = e.target;
     const limpio = value.replace(/<[^>]*>?/gm, '');
     setFormData({ ...formData, [name]: limpio });
@@ -31,6 +32,7 @@ const Login = ({ onLogin }) => {
   };
 
   const validar = () => {
+    // Las reglas cambian segun el modo activo: login, registro o recuperacion.
     let nuevosErrores = {};
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -67,6 +69,7 @@ const Login = ({ onLogin }) => {
 
     try {
       if (isRecovering) {
+        // Modo recuperacion: solo envia correo y no inicia sesion.
         const res = await fetch(`${API}/auth/password-reset/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -83,6 +86,7 @@ const Login = ({ onLogin }) => {
         setSuccess(true);
 
       } else if (isRegistering) {
+        // Modo registro: crea siempre un usuario cliente/tutor.
         const res = await fetch(`${API}/auth/register/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -106,6 +110,7 @@ const Login = ({ onLogin }) => {
         setSuccess(true);
 
       } else {
+        // Modo login: guarda tokens y avisa a App.js para abrir rutas privadas.
         const res = await fetch(`${API}/auth/login/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
