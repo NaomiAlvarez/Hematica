@@ -512,8 +512,8 @@ const ResultadoEstudio = ({ usuario, isAdmin, isVeterinario }) => {
         if (miCliente) {
           const resP    = await fetch(`http://localhost:8000/api/v1/pacientes/?id_cliente=${miCliente.id_cliente}`);
           const misP    = await resP.json();
-          const nombres = misP.map(p => p.nombre);
-          setResultados(datos.filter(r => nombres.includes(r.paciente_nombre)));
+          const ids = misP.map(p => p.id_paciente);
+          setResultados(datos.filter(r => ids.includes(r.id_paciente)));
         }
       }
     } catch { setError('No se pudieron cargar los resultados.'); }

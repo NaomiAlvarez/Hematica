@@ -39,6 +39,55 @@ const ModalAviso = ({ mensaje, onCerrar }) => (
   </div>
 );
 
+const CamposForm = ({ f, onChange, razasLista, errMsg, clientes, especies }) => (
+  <>
+    <div style={styles.grid}>
+      <div style={styles.field}>
+        <label style={styles.label}>NOMBRE *</label>
+        <input style={styles.input} name="nombre" value={f.nombre} onChange={onChange} placeholder="Nombre del paciente" />
+      </div>
+      <div style={styles.field}>
+        <label style={styles.label}>DUEÑO *</label>
+        <select style={styles.input} name="id_cliente" value={f.id_cliente} onChange={onChange}>
+          <option value="">Selecciona un cliente</option>
+          {clientes.map(c => <option key={c.id_cliente} value={c.id_cliente}>{c.nombre}</option>)}
+        </select>
+      </div>
+      <div style={styles.field}>
+        <label style={styles.label}>ESPECIE *</label>
+        <select style={styles.input} name="id_especie" value={f.id_especie} onChange={onChange}>
+          <option value="">Selecciona una especie</option>
+          {especies.map(e => <option key={e.id_especie} value={e.id_especie}>{e.nombre}</option>)}
+        </select>
+      </div>
+      <div style={styles.field}>
+        <label style={styles.label}>RAZA *</label>
+        <select style={styles.input} name="id_raza" value={f.id_raza} onChange={onChange} disabled={!f.id_especie}>
+          <option value="">{f.id_especie ? 'Selecciona una raza' : 'Primero selecciona especie'}</option>
+          {razasLista.map(r => <option key={r.id_raza} value={r.id_raza}>{r.nombre}</option>)}
+        </select>
+      </div>
+      <div style={styles.field}>
+        <label style={styles.label}>EDAD (años) *</label>
+        <input style={styles.input} name="edad" type="number" min="0" value={f.edad} onChange={onChange} placeholder="Ej: 3" />
+      </div>
+      <div style={styles.field}>
+        <label style={styles.label}>SEXO *</label>
+        <select style={styles.input} name="sexo" value={f.sexo} onChange={onChange}>
+          <option value="">Selecciona</option>
+          <option value="M">Macho</option>
+          <option value="F">Hembra</option>
+        </select>
+      </div>
+      <div style={styles.field}>
+        <label style={styles.label}>PESO (kg)</label>
+        <input style={styles.input} name="peso" type="number" min="0" step="0.1" value={f.peso} onChange={onChange} placeholder="Ej: 4.5" />
+      </div>
+    </div>
+    {errMsg && <p style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '10px' }}>{errMsg}</p>}
+  </>
+);
+
 const MisPacientes = ({ usuario }) => {
   const [pacientes, setPacientes] = useState([]);
   const [especies, setEspecies] = useState([]);
@@ -263,54 +312,7 @@ const MisPacientes = ({ usuario }) => {
     });
   };
 
-  const CamposForm = ({ f, onChange, razasLista, errMsg }) => (
-    <>
-      <div style={styles.grid}>
-        <div style={styles.field}>
-          <label style={styles.label}>NOMBRE *</label>
-          <input style={styles.input} name="nombre" value={f.nombre} onChange={onChange} placeholder="Nombre del paciente" />
-        </div>
-        <div style={styles.field}>
-          <label style={styles.label}>DUEÑO *</label>
-          <select style={styles.input} name="id_cliente" value={f.id_cliente} onChange={onChange}>
-            <option value="">Selecciona un cliente</option>
-            {clientes.map(c => <option key={c.id_cliente} value={c.id_cliente}>{c.nombre}</option>)}
-          </select>
-        </div>
-        <div style={styles.field}>
-          <label style={styles.label}>ESPECIE *</label>
-          <select style={styles.input} name="id_especie" value={f.id_especie} onChange={onChange}>
-            <option value="">Selecciona una especie</option>
-            {especies.map(e => <option key={e.id_especie} value={e.id_especie}>{e.nombre}</option>)}
-          </select>
-        </div>
-        <div style={styles.field}>
-          <label style={styles.label}>RAZA *</label>
-          <select style={styles.input} name="id_raza" value={f.id_raza} onChange={onChange} disabled={!f.id_especie}>
-            <option value="">{f.id_especie ? 'Selecciona una raza' : 'Primero selecciona especie'}</option>
-            {razasLista.map(r => <option key={r.id_raza} value={r.id_raza}>{r.nombre}</option>)}
-          </select>
-        </div>
-        <div style={styles.field}>
-          <label style={styles.label}>EDAD (años) *</label>
-          <input style={styles.input} name="edad" type="number" min="0" value={f.edad} onChange={onChange} placeholder="Ej: 3" />
-        </div>
-        <div style={styles.field}>
-          <label style={styles.label}>SEXO *</label>
-          <select style={styles.input} name="sexo" value={f.sexo} onChange={onChange}>
-            <option value="">Selecciona</option>
-            <option value="M">Macho</option>
-            <option value="F">Hembra</option>
-          </select>
-        </div>
-        <div style={styles.field}>
-          <label style={styles.label}>PESO (kg)</label>
-          <input style={styles.input} name="peso" type="number" min="0" step="0.1" value={f.peso} onChange={onChange} placeholder="Ej: 4.5" />
-        </div>
-      </div>
-      {errMsg && <p style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '10px' }}>{errMsg}</p>}
-    </>
-  );
+
 
   const especiesFiltro = useMemo(() => (
     [...new Set(pacientes.map((p) => p.especie_nombre).filter(Boolean))]
@@ -380,7 +382,7 @@ const MisPacientes = ({ usuario }) => {
         <div style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={styles.modalTitle}>REGISTRAR PACIENTE</h2>
-            <CamposForm f={form} onChange={handleChange} razasLista={razas} errMsg={errGuardar} />
+            <CamposForm f={form} onChange={handleChange} razasLista={razas} errMsg={errGuardar} clientes={clientes} especies={especies} />
             <div style={{ marginTop: '12px' }}>
               <label style={styles.label}>ANAMNESIS</label>
               <textarea style={{ ...styles.input, height: '80px', resize: 'vertical' }}
@@ -402,7 +404,7 @@ const MisPacientes = ({ usuario }) => {
         <div style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={styles.modalTitle}>EDITAR PACIENTE</h2>
-            <CamposForm f={formEditar} onChange={handleChangeEditar} razasLista={razasEditar} errMsg={errEditar} />
+            <CamposForm f={formEditar} onChange={handleChangeEditar} razasLista={razasEditar} errMsg={errEditar} clientes={clientes} especies={especies} />
             <div style={styles.modalBtns}>
               <button style={styles.btnCancelar} onClick={() => setModalEditar(null)}>CANCELAR</button>
               <button style={{ ...styles.btnGuardar, background: '#f59e0b' }} onClick={handleGuardarEditar} disabled={guardandoEditar}>

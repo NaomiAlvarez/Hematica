@@ -26,7 +26,7 @@ const Login = ({ onLogin }) => {
   const handleChange = (e) => {
     // Sanitiza HTML simple para evitar que se escriban etiquetas en inputs.
     const { name, value } = e.target;
-    const limpio = value.replace(/<[^>]*>?/gm, '');
+    const limpio = name === 'password' ? value : value.replace(/<[^>]*>?/gm, '');
     setFormData({ ...formData, [name]: limpio });
     setErrors({ ...errors, [name]: '' });
   };

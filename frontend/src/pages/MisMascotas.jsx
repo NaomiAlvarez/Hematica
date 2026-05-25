@@ -116,7 +116,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
     try {
       const res = await fetch('http://localhost:8000/api/v1/resultados/');
       const datos = await res.json();
-      const filtrados = datos.filter(r => r.paciente_nombre === mascota.nombre);
+      const filtrados = datos.filter(r => r.id_paciente === mascota.id_paciente);
       setHistorial(filtrados);
     } catch { setHistorial([]); }
     finally { setLoadingHistorial(false); }
@@ -201,7 +201,7 @@ const MisMascotas = ({ usuario, isAdmin }) => {
               <label>SEXO *</label>
               <select value={form.sexo} onChange={e => setForm({ ...form, sexo: e.target.value })}>
                 <option value="M">Macho</option>
-                <option value="H">Hembra</option>
+                <option value="F">Hembra</option>
               </select>
             </div>
             <div className="input-group">

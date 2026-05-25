@@ -7,6 +7,58 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import ListingControls, { getPaginatedItems, normalizeText } from '../components/ListingControls';
 import './Pages.css';
 
+const ResumenCosto = ({ seleccionados, estudios, formatPrecio, calcularTotalSeleccionados }) => {
+  if (seleccionados.length === 0) return null;
+  return (
+    <div style={{ marginTop: '10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px' }}>
+      <p style={{ fontSize: '11px', fontWeight: '700', color: '#15803d', letterSpacing: '1px', marginBottom: '8px' }}>
+        RESUMEN DE COSTOS
+      </p>
+      {seleccionados.map(id => {
+        const est = estudios.find(e => e.id_catalogo === id);
+        return est ? (
+          <div key={id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.83rem', color: '#374151', marginBottom: '4px' }}>
+            <span>{est.nombre}</span>
+            <span style={{ fontWeight: '600' }}>{formatPrecio(parseFloat(est.precio))}</span>
+          </div>
+        ) : null;
+      })}
+      <div style={{ borderTop: '1px solid #bbf7d0', marginTop: '8px', paddingTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#15803d' }}>TOTAL</span>
+        <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#15803d' }}>
+          {formatPrecio(calcularTotalSeleccionados(seleccionados))}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+const CheckboxEstudios = ({ seleccionados, onToggle, estudios, formatPrecio }) => (
+  <div style={{
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px',
+    padding: '12px', background: '#fff', border: '1px solid #e2e8f0',
+    borderRadius: '8px', maxHeight: '180px', overflowY: 'auto'
+  }}>
+    {estudios.map(e => {
+      const sel = seleccionados.includes(e.id_catalogo);
+      return (
+        <label key={e.id_catalogo} style={{
+          display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px',
+          borderRadius: '6px', cursor: 'pointer',
+          background: sel ? '#e0f2fe' : '#f8fafc',
+          border: sel ? '1px solid #0369a1' : '1px solid #e2e8f0',
+        }}>
+          <input type="checkbox" checked={sel} onChange={() => onToggle(e.id_catalogo)}
+            style={{ accentColor: '#0369a1', width: '16px', height: '16px' }} />
+          <span style={{ fontSize: '0.85rem' }}>
+            <strong>{e.nombre}</strong>
+            <span style={{ color: '#64748b', marginLeft: '4px' }}>{formatPrecio(parseFloat(e.precio))}</span>
+          </span>
+        </label>
+      );
+    })}
+  </div>
+);
 const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
   const [solicitudes, setSolicitudes] = useState([]);
   const [solicitudEstudios, setSolicitudEstudios] = useState([]);
@@ -390,58 +442,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
     </span>
   );
 
-  const ResumenCosto = ({ seleccionados }) => {
-    if (seleccionados.length === 0) return null;
-    return (
-      <div style={{ marginTop: '10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px 16px' }}>
-        <p style={{ fontSize: '11px', fontWeight: '700', color: '#15803d', letterSpacing: '1px', marginBottom: '8px' }}>
-          RESUMEN DE COSTOS
-        </p>
-        {seleccionados.map(id => {
-          const est = estudios.find(e => e.id_catalogo === id);
-          return est ? (
-            <div key={id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.83rem', color: '#374151', marginBottom: '4px' }}>
-              <span>{est.nombre}</span>
-              <span style={{ fontWeight: '600' }}>{formatPrecio(parseFloat(est.precio))}</span>
-            </div>
-          ) : null;
-        })}
-        <div style={{ borderTop: '1px solid #bbf7d0', marginTop: '8px', paddingTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#15803d' }}>TOTAL</span>
-          <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#15803d' }}>
-            {formatPrecio(calcularTotalSeleccionados(seleccionados))}
-          </span>
-        </div>
-      </div>
-    );
-  };
 
-  const CheckboxEstudios = ({ seleccionados, onToggle }) => (
-    <div style={{
-      display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px',
-      padding: '12px', background: '#fff', border: '1px solid #e2e8f0',
-      borderRadius: '8px', maxHeight: '180px', overflowY: 'auto'
-    }}>
-      {estudios.map(e => {
-        const sel = seleccionados.includes(e.id_catalogo);
-        return (
-          <label key={e.id_catalogo} style={{
-            display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px',
-            borderRadius: '6px', cursor: 'pointer',
-            background: sel ? '#e0f2fe' : '#f8fafc',
-            border: sel ? '1px solid #0369a1' : '1px solid #e2e8f0',
-          }}>
-            <input type="checkbox" checked={sel} onChange={() => onToggle(e.id_catalogo)}
-              style={{ accentColor: '#0369a1', width: '16px', height: '16px' }} />
-            <span style={{ fontSize: '0.85rem' }}>
-              <strong>{e.nombre}</strong>
-              <span style={{ color: '#64748b', marginLeft: '4px' }}>{formatPrecio(parseFloat(e.precio))}</span>
-            </span>
-          </label>
-        );
-      })}
-    </div>
-  );
 
   // Datos derivados para render.
 
@@ -514,9 +515,9 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
             </div>
             <div className="input-group">
               <label>ESTUDIOS * <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(puedes seleccionar varios)</span></label>
-              <CheckboxEstudios seleccionados={form.estudiosSeleccionados} onToggle={toggleEstudio} />
+              <CheckboxEstudios seleccionados={form.estudiosSeleccionados} onToggle={toggleEstudio} estudios={estudios} formatPrecio={formatPrecio} />
               {errForm.estudiosSeleccionados && <span className="error-message">{errForm.estudiosSeleccionados}</span>}
-              <ResumenCosto seleccionados={form.estudiosSeleccionados} />
+              <ResumenCosto seleccionados={form.estudiosSeleccionados} estudios={estudios} formatPrecio={formatPrecio} calcularTotalSeleccionados={calcularTotalSeleccionados} />
             </div>
             <div className="input-group">
               <label>ANAMNESIS <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(prellenado con anamnesis del paciente — máx. 200)</span></label>
@@ -558,6 +559,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                 <label style={styles.label}>ESTUDIOS * <span style={{ fontWeight: 'normal', color: '#94a3b8' }}>(puedes seleccionar varios)</span></label>
                 <CheckboxEstudios
                   seleccionados={formEditarSol.estudiosSeleccionados}
+                  estudios={estudios} formatPrecio={formatPrecio}
                   onToggle={id => setFormEditarSol(prev => ({
                     ...prev,
                     estudiosSeleccionados: prev.estudiosSeleccionados.includes(id)
@@ -566,7 +568,7 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
                   }))}
                 />
                 {errEditarSol.estudiosSeleccionados && <span style={styles.err}>{errEditarSol.estudiosSeleccionados}</span>}
-                <ResumenCosto seleccionados={formEditarSol.estudiosSeleccionados} />
+                <ResumenCosto seleccionados={formEditarSol.estudiosSeleccionados} estudios={estudios} formatPrecio={formatPrecio} calcularTotalSeleccionados={calcularTotalSeleccionados} />
               </div>
               <div style={styles.field}>
                 <label style={styles.label}>ANAMNESIS <span style={{ fontWeight: 'normal', color: '#94a3b8' }}>(opcional, máx. 200)</span></label>
@@ -731,9 +733,9 @@ const Solicitudes = ({ usuario, isAdmin, isVeterinario }) => {
               </div>
               <div style={styles.field}>
                 <label style={styles.label}>ESTUDIOS *</label>
-                <CheckboxEstudios seleccionados={formModificar.estudiosSeleccionados} onToggle={toggleEstudioModificar} />
+                <CheckboxEstudios seleccionados={formModificar.estudiosSeleccionados} onToggle={toggleEstudioModificar} estudios={estudios} formatPrecio={formatPrecio} />
                 {errModificar.estudiosSeleccionados && <span style={styles.err}>{errModificar.estudiosSeleccionados}</span>}
-                <ResumenCosto seleccionados={formModificar.estudiosSeleccionados} />
+                <ResumenCosto seleccionados={formModificar.estudiosSeleccionados} estudios={estudios} formatPrecio={formatPrecio} calcularTotalSeleccionados={calcularTotalSeleccionados} />
               </div>
               <div style={styles.field}>
                 <label style={styles.label}>NOTAS</label>

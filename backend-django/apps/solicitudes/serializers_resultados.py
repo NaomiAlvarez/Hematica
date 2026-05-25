@@ -13,6 +13,9 @@ class ResultadoEstudioSerializer(serializers.ModelSerializer):
     paciente_nombre = serializers.CharField(
         source='id_solicitud.id_paciente.nombre', read_only=True
     )
+    id_paciente = serializers.IntegerField(
+        source='id_solicitud.id_paciente.id_paciente', read_only=True
+    )
     estado_solicitud = serializers.CharField(
         source='id_solicitud.estado', read_only=True
     )
@@ -20,7 +23,7 @@ class ResultadoEstudioSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResultadoEstudio
         fields = [
-            'id_resultado', 'id_solicitud', 'paciente_nombre',
+            'id_resultado', 'id_solicitud', 'id_paciente', 'paciente_nombre',
             'estado_solicitud', 'id_vet', 'veterinario_nombre',
             'fecha_muestra', 'observaciones', 'reporte_clinico', 'archivo_pdf'
         ]
